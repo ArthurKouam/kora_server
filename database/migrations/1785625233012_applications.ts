@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.uuid('id').primary().notNullable()
+      table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('job_id').notNullable()
       table.uuid('candidate_id').notNullable()
       table.enum('status', ['new', 'screening', 'shortlisted', 'interview', 'offer', 'hired', 'rejected', 'withdrawn']).notNullable().defaultTo('new')

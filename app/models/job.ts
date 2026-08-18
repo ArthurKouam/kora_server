@@ -14,7 +14,7 @@ export default class Job extends JobSchema {
   declare organization: BelongsTo<typeof Organization>
 
   @belongsTo(() => User, { foreignKey: 'createdBy' })
-  declare createdBy: BelongsTo<typeof User>
+  declare user: BelongsTo<typeof User>
 
   @hasMany(() => JobSkill)
   declare skills: HasMany<typeof JobSkill>
@@ -23,7 +23,7 @@ export default class Job extends JobSchema {
   declare applications: HasMany<typeof Application>
 
   @manyToMany(() => Skill, {
-    pivotModel: () => JobSkill,
+    pivotTable: 'job_skills',
     pivotForeignKey: 'job_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'skill_id',

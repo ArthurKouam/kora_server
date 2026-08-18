@@ -5,14 +5,17 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.uuid('id').primary().notNullable()
+      table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('organization_id').nullable()
       table.string('first_name').nullable()
       table.string('last_name').nullable()
       table.string('email').notNullable().unique()
       table.string('password').notNullable()
       table.string('avatar_url').nullable()
-      table.enum('role', ['owner', 'admin', 'recruiter', 'hiring_manager', 'interviewer']).notNullable().defaultTo('recruiter')
+      table
+        .enum('role', ['owner', 'admin', 'recruiter', 'hiring_manager', 'interviewer'])
+        .notNullable()
+        .defaultTo('recruiter')
       table.timestamp('email_verified_at').nullable()
       table.timestamp('last_login_at').nullable()
       table.timestamp('created_at').notNullable()

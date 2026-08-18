@@ -12,7 +12,7 @@ export default class Interview extends InterviewSchema {
   declare application: BelongsTo<typeof Application>
 
   @belongsTo(() => User, { foreignKey: 'createdBy' })
-  declare createdBy: BelongsTo<typeof User>
+  declare user: BelongsTo<typeof User>
 
   @hasMany(() => Evaluation)
   declare evaluations: HasMany<typeof Evaluation>

@@ -1,6 +1,6 @@
 import { ApplicationSchema } from '#database/schema'
-import { belongsTo, hasMany, hasOne } from '@adonisjs/lucid/orm'
-import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Job from '#models/job'
 import Candidate from '#models/candidate'
 import CandidateDocument from '#models/candidate_document'

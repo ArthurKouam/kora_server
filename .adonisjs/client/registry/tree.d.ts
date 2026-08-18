@@ -6,16 +6,32 @@ export interface ApiDefinition {
     newAccount: {
       store: typeof routes['auth.new_account.store']
     }
-    accessTokens: {
-      store: typeof routes['auth.access_tokens.store']
+    sessions: {
+      login: typeof routes['auth.sessions.login']
     }
   }
   profile: {
     profile: {
       show: typeof routes['profile.profile.show']
     }
-    accessTokens: {
-      destroy: typeof routes['profile.access_tokens.destroy']
+    sessions: {
+      destroy: typeof routes['profile.sessions.destroy']
     }
+  }
+  dashboard: {
+    stats: typeof routes['dashboard.stats']
+    upcomingInterviews: typeof routes['dashboard.upcoming_interviews']
+    applicationStatusStats: typeof routes['dashboard.application_status_stats']
+    jobStatusStats: typeof routes['dashboard.job_status_stats']
+  }
+  candidates: {
+    index: typeof routes['candidates.index']
+  }
+  jobs: {
+    index: typeof routes['jobs.index']
+    store: typeof routes['jobs.store']
+    show: typeof routes['jobs.show']
+    update: typeof routes['jobs.update']
+    destroy: typeof routes['jobs.destroy']
   }
 }

@@ -420,8 +420,29 @@ export class JobSkillSchema extends BaseModel {
   declare skillId: string
 }
 
+export class JobStatusHistorySchema extends BaseModel {
+  static $columns = ['changedByType', 'changedByUserId', 'createdAt', 'fromStatus', 'id', 'jobId', 'reason', 'toStatus'] as const
+  $columns = JobStatusHistorySchema.$columns
+  @column()
+  declare changedByType: string
+  @column()
+  declare changedByUserId: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare fromStatus: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobId: string
+  @column()
+  declare reason: string | null
+  @column()
+  declare toStatus: string
+}
+
 export class JobSchema extends BaseModel {
-  static $columns = ['benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
+  static $columns = ['benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'headcount', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
   $columns = JobSchema.$columns
   @column()
   declare benefits: string | null
@@ -441,6 +462,8 @@ export class JobSchema extends BaseModel {
   declare employmentType: string | null
   @column()
   declare experienceLevel: string | null
+  @column()
+  declare headcount: number
   @column({ isPrimary: true })
   declare id: string
   @column()
@@ -456,9 +479,9 @@ export class JobSchema extends BaseModel {
   @column()
   declare salaryCurrency: string | null
   @column()
-  declare salaryMax: number | null
+  declare salaryMax: string | null
   @column()
-  declare salaryMin: number | null
+  declare salaryMin: string | null
   @column()
   declare slug: string
   @column()
@@ -529,6 +552,23 @@ export class OrganizationSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare website: string | null
+}
+
+export class RememberMeTokenSchema extends BaseModel {
+  static $columns = ['createdAt', 'expiresAt', 'hash', 'id', 'tokenableId', 'updatedAt'] as const
+  $columns = RememberMeTokenSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare hash: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare tokenableId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }
 
 export class SkillSchema extends BaseModel {

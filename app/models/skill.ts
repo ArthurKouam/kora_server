@@ -16,7 +16,7 @@ export default class Skill extends SkillSchema {
   declare jobSkills: HasMany<typeof JobSkill>
 
   @manyToMany(() => Candidate, {
-    pivotModel: () => CandidateSkill,
+    pivotTable: 'Candidate_skill',
     pivotForeignKey: 'skill_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'candidate_id',
@@ -24,7 +24,7 @@ export default class Skill extends SkillSchema {
   declare candidates: ManyToMany<typeof Candidate>
 
   @manyToMany(() => Job, {
-    pivotModel: () => JobSkill,
+    pivotTable: 'Job_skill',
     pivotForeignKey: 'skill_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'job_id',

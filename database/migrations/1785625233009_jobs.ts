@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.uuid('id').primary().notNullable()
+      table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('organization_id').notNullable()
       table.uuid('created_by').notNullable()
       table.string('title').notNullable()
@@ -36,6 +36,7 @@ export default class extends BaseSchema {
         .enum('status', ['draft', 'published', 'paused', 'closed', 'archived'])
         .notNullable()
         .defaultTo('draft')
+      table.integer('headcount').notNullable().defaultTo(1)
       table.timestamp('published_at').nullable()
       table.date('closing_date').nullable()
       table.timestamp('created_at').notNullable()

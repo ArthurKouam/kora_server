@@ -7,7 +7,7 @@ const authConfig = defineConfig({
   /**
    * Default guard used when no guard is explicitly specified.
    */
-  default: 'api',
+  default: 'web',
 
   guards: {
     /**
@@ -21,14 +21,24 @@ const authConfig = defineConfig({
     }),
 
     /**
+     * Token-based guard for candidate API authentication.
+     */
+    candidate_api: tokensGuard({
+      provider: tokensUserProvider({
+        tokens: 'candidateSessions',
+        model: () => import('#models/candidate'),
+      }),
+    }),
+
+    /**
      * Session-based guard for browser authentication.
      */
     web: sessionGuard({
       /**
        * Enable persistent login using remember-me tokens.
        */
-      useRememberMeTokens: false,
-
+      useRememberMeTokens: true,
+      rememberMeTokensAge: '1 years',
       provider: sessionUserProvider({
         model: () => import('#models/user'),
       }),

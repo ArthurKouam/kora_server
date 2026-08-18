@@ -5,10 +5,32 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.uuid('id').primary().notNullable()
+      table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('application_id').notNullable()
-      table.enum('from_status', ['new', 'screening', 'shortlisted', 'interview', 'offer', 'hired', 'rejected', 'withdrawn']).notNullable()
-      table.enum('to_status', ['new', 'screening', 'shortlisted', 'interview', 'offer', 'hired', 'rejected', 'withdrawn']).notNullable()
+      table
+        .enum('from_status', [
+          'new',
+          'screening',
+          'shortlisted',
+          'interview',
+          'offer',
+          'hired',
+          'rejected',
+          'withdrawn',
+        ])
+        .notNullable()
+      table
+        .enum('to_status', [
+          'new',
+          'screening',
+          'shortlisted',
+          'interview',
+          'offer',
+          'hired',
+          'rejected',
+          'withdrawn',
+        ])
+        .notNullable()
       table.enum('changed_by_type', ['user', 'candidate', 'system']).notNullable()
       table.uuid('changed_by_user_id').nullable()
       table.uuid('changed_by_candidate_id').nullable()
@@ -17,7 +39,11 @@ export default class extends BaseSchema {
 
       table.foreign('application_id').references('id').inTable('applications').onDelete('CASCADE')
       table.foreign('changed_by_user_id').references('id').inTable('users').onDelete('SET NULL')
-      table.foreign('changed_by_candidate_id').references('id').inTable('candidates').onDelete('SET NULL')
+      table
+        .foreign('changed_by_candidate_id')
+        .references('id')
+        .inTable('candidates')
+        .onDelete('SET NULL')
       table.index(['application_id'])
     })
   }
