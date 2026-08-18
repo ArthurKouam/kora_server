@@ -60,6 +60,12 @@ const routes = {
     tokens: [{"old":"/api/v1/dashboard/candidates","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/candidates","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/candidates","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/candidates","type":0,"val":"candidates","end":""}],
     types: placeholder as Registry['candidates.index']['types'],
   },
+  'candidates.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/candidates/:id',
+    tokens: [{"old":"/api/v1/dashboard/candidates/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/candidates/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/candidates/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/candidates/:id","type":0,"val":"candidates","end":""},{"old":"/api/v1/dashboard/candidates/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['candidates.show']['types'],
+  },
   'jobs.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/dashboard/jobs',

@@ -115,6 +115,18 @@ export interface Registry {
       errorResponse: unknown
     }
   }
+  'candidates.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/candidates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'jobs.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/jobs'

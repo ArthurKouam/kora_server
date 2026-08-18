@@ -26,6 +26,7 @@ export interface ApiDefinition {
   }
   candidates: {
     index: typeof routes['candidates.index']
+    show: typeof routes['candidates.show']
   }
   jobs: {
     index: typeof routes['jobs.index']

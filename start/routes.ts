@@ -43,6 +43,7 @@ router
         router.get('job-status-stats', [controllers.Dashboard, 'jobStatusStats'])
 
         router.get('candidates', [CandidatesController, 'index'])
+        router.get('candidates/:id', [CandidatesController, 'show'])
 
         router
           .group(() => {

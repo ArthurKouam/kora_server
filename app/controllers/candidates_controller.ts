@@ -66,4 +66,43 @@ export default class CandidatesController {
       meta: candidates.getMeta(),
     })
   }
+
+  /**
+   * GET /candidates/:id
+   * Retourne les détails d'un candidat avec ses documents, expériences, formations, compétences et candidatures.
+   */
+  async show({ auth, params, response }: HttpContext) {
+    const user = auth.use('web').getUserOrFail()
+    await user.load('organization')
+
+    const organizationId = user.organizationId
+
+    if (!organizationId) {
+      return response.forbidden({ error: 'User does not belong to any organization' })
+    }
+
+    const candidate = await Candidate.query()
+      .where('id', params.id)
+      .andWhereHas('applications', (applicationsQuery) =>
+        applicationsQuery.whereHas('job', (jobsQuery) =>
+          jobsQuery.where('organization_id', organizationId)
+        )
+      )
+      .preload('documents')
+      .preload('experiences')
+      .preload('educations')
+      .preload('skills', (skillsQuery) =>
+        skillsQuery.preload('skill')
+      )
+      .preload('applications', (applicationsQuery) =>
+        applicationsQuery
+          .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
+          .preload('job')
+          .preload('cvDocument')
+          .orderBy('applied_at', 'desc')
+      )
+      .firstOrFail()
+
+    return response.ok(candidate)
+  }
 }

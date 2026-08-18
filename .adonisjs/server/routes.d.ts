@@ -13,6 +13,7 @@ export type ScannedRoutes = {
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'candidates.index': { paramsTuple?: []; params?: {} }
+    'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'jobs.store': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -26,6 +27,7 @@ export type ScannedRoutes = {
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'candidates.index': { paramsTuple?: []; params?: {} }
+    'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -36,6 +38,7 @@ export type ScannedRoutes = {
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'candidates.index': { paramsTuple?: []; params?: {} }
+    'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
