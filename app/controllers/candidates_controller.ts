@@ -88,12 +88,40 @@ export default class CandidatesController {
           jobsQuery.where('organization_id', organizationId)
         )
       )
-      .preload('documents')
-      .preload('experiences')
-      .preload('educations')
-      .preload('skills', (skillsQuery) =>
-        skillsQuery.preload('skill')
+      .preload('documents', (documentsQuery) =>
+        documentsQuery.where((subQuery) =>
+          subQuery
+            .whereNull('applicationId')
+            .orWhereHas('application', (applicationQuery) =>
+              applicationQuery.whereHas('job', (jobsQuery) =>
+                jobsQuery.where('organization_id', organizationId)
+              )
+            )
+        )
       )
+      .preload('experiences', (experiencesQuery) =>
+        experiencesQuery.where((subQuery) =>
+          subQuery
+            .whereNull('applicationId')
+            .orWhereHas('application', (applicationQuery) =>
+              applicationQuery.whereHas('job', (jobsQuery) =>
+                jobsQuery.where('organization_id', organizationId)
+              )
+            )
+        )
+      )
+      .preload('educations', (educationsQuery) =>
+        educationsQuery.where((subQuery) =>
+          subQuery
+            .whereNull('applicationId')
+            .orWhereHas('application', (applicationQuery) =>
+              applicationQuery.whereHas('job', (jobsQuery) =>
+                jobsQuery.where('organization_id', organizationId)
+              )
+            )
+        )
+      )
+      .preload('skills', (skillsQuery) => skillsQuery.preload('skill'))
       .preload('applications', (applicationsQuery) =>
         applicationsQuery
           .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))

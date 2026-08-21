@@ -7,6 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('candidate_id').notNullable()
+      table.uuid('application_id').nullable()
       table.string('company').nullable()
       table.string('position').nullable()
       table.string('location').nullable()
@@ -19,6 +20,7 @@ export default class extends BaseSchema {
 
       table.foreign('candidate_id').references('id').inTable('candidates').onDelete('CASCADE')
       table.index(['candidate_id'])
+      table.index(['application_id'])
     })
   }
 

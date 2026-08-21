@@ -115,8 +115,10 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class CandidateDocumentSchema extends BaseModel {
-  static $columns = ['candidateId', 'createdAt', 'filePath', 'fileSize', 'id', 'mimeType', 'name', 'type', 'updatedAt'] as const
+  static $columns = ['applicationId', 'candidateId', 'createdAt', 'filePath', 'fileSize', 'id', 'mimeType', 'name', 'type', 'updatedAt'] as const
   $columns = CandidateDocumentSchema.$columns
+  @column()
+  declare applicationId: string | null
   @column()
   declare candidateId: string
   @column.dateTime({ autoCreate: true })
@@ -138,8 +140,10 @@ export class CandidateDocumentSchema extends BaseModel {
 }
 
 export class CandidateEducationSchema extends BaseModel {
-  static $columns = ['candidateId', 'createdAt', 'degree', 'description', 'endDate', 'fieldOfStudy', 'id', 'institution', 'location', 'startDate', 'updatedAt'] as const
+  static $columns = ['applicationId', 'candidateId', 'createdAt', 'degree', 'description', 'endDate', 'fieldOfStudy', 'id', 'institution', 'location', 'startDate', 'updatedAt'] as const
   $columns = CandidateEducationSchema.$columns
+  @column()
+  declare applicationId: string | null
   @column()
   declare candidateId: string
   @column.dateTime({ autoCreate: true })
@@ -165,8 +169,10 @@ export class CandidateEducationSchema extends BaseModel {
 }
 
 export class CandidateExperienceSchema extends BaseModel {
-  static $columns = ['candidateId', 'company', 'createdAt', 'description', 'endDate', 'id', 'isCurrent', 'location', 'position', 'startDate', 'updatedAt'] as const
+  static $columns = ['applicationId', 'candidateId', 'company', 'createdAt', 'description', 'endDate', 'id', 'isCurrent', 'location', 'position', 'startDate', 'updatedAt'] as const
   $columns = CandidateExperienceSchema.$columns
+  @column()
+  declare applicationId: string | null
   @column()
   declare candidateId: string
   @column()

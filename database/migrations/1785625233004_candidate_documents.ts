@@ -7,6 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('candidate_id').notNullable()
+      table.uuid('application_id').nullable()
       table.enum('type', ['cv', 'cover_letter', 'certificate', 'portfolio', 'other']).notNullable()
       table.string('name').nullable()
       table.string('file_path').notNullable()
@@ -17,6 +18,7 @@ export default class extends BaseSchema {
 
       table.foreign('candidate_id').references('id').inTable('candidates').onDelete('CASCADE')
       table.index(['candidate_id'])
+      table.index(['application_id'])
       table.index(['candidate_id', 'type'])
     })
   }
