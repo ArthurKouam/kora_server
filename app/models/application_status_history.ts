@@ -8,6 +8,8 @@ import Candidate from '#models/candidate'
 export default class ApplicationStatusHistory extends ApplicationStatusHistorySchema {
   static selfAssignPrimaryKey = false
 
+  static table = 'application_status_history'
+
   @belongsTo(() => Application)
   declare application: BelongsTo<typeof Application>
 

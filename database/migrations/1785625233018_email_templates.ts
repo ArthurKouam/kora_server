@@ -8,7 +8,16 @@ export default class extends BaseSchema {
       table.uuid('id').primary().notNullable().defaultTo(this.raw('gen_random_uuid()'))
       table.uuid('organization_id').notNullable()
       table.string('name').notNullable()
-      table.enum('type', ['application_received', 'application_rejected', 'interview_invitation', 'interview_reminder', 'offer', 'custom']).notNullable()
+      table
+        .enum('type', [
+          'application_received',
+          'application_rejected',
+          'interview_invitation',
+          'interview_reminder',
+          'offer',
+          'custom',
+        ])
+        .notNullable()
       table.string('subject').nullable()
       table.text('body').nullable()
       table.boolean('is_active').defaultTo(true)

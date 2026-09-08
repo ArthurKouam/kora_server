@@ -61,8 +61,10 @@ export class ApplicationTagSchema extends BaseModel {
 }
 
 export class ApplicationSchema extends BaseModel {
-  static $columns = ['appliedAt', 'candidateId', 'coverLetter', 'createdAt', 'cvDocumentId', 'hiredAt', 'id', 'jobId', 'rejectedAt', 'source', 'status', 'updatedAt'] as const
+  static $columns = ['answers', 'appliedAt', 'candidateId', 'coverLetter', 'createdAt', 'cvDocumentId', 'formVersionId', 'hiredAt', 'id', 'jobId', 'rejectedAt', 'source', 'status', 'updatedAt'] as const
   $columns = ApplicationSchema.$columns
+  @column()
+  declare answers: any
   @column.dateTime()
   declare appliedAt: DateTime
   @column()
@@ -73,6 +75,8 @@ export class ApplicationSchema extends BaseModel {
   declare createdAt: DateTime
   @column()
   declare cvDocumentId: string | null
+  @column()
+  declare formVersionId: string | null
   @column.dateTime()
   declare hiredAt: DateTime | null
   @column({ isPrimary: true })
@@ -236,8 +240,10 @@ export class CandidateSkillSchema extends BaseModel {
 }
 
 export class CandidateVerificationTokenSchema extends BaseModel {
-  static $columns = ['candidateId', 'createdAt', 'email', 'expiresAt', 'id', 'tokenHash', 'updatedAt', 'verifiedAt'] as const
+  static $columns = ['attempts', 'candidateId', 'createdAt', 'email', 'expiresAt', 'id', 'tokenHash', 'type', 'updatedAt', 'verifiedAt'] as const
   $columns = CandidateVerificationTokenSchema.$columns
+  @column()
+  declare attempts: number
   @column()
   declare candidateId: string | null
   @column.dateTime({ autoCreate: true })
@@ -250,6 +256,8 @@ export class CandidateVerificationTokenSchema extends BaseModel {
   declare id: string
   @column()
   declare tokenHash: string
+  @column()
+  declare type: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column.dateTime()
@@ -380,15 +388,44 @@ export class EvaluationSchema extends BaseModel {
   declare weaknesses: string | null
 }
 
+export class InterviewSlotRequestSchema extends BaseModel {
+  static $columns = ['applicationId', 'chosenSlots', 'createdAt', 'id', 'periodEnd', 'periodStart', 'requestedSlots', 'status', 'updatedAt'] as const
+  $columns = InterviewSlotRequestSchema.$columns
+  @column()
+  declare applicationId: string
+  @column()
+  declare chosenSlots: any | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column.date()
+  declare periodEnd: DateTime
+  @column.date()
+  declare periodStart: DateTime
+  @column()
+  declare requestedSlots: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class InterviewSchema extends BaseModel {
-  static $columns = ['applicationId', 'createdAt', 'createdBy', 'duration', 'id', 'location', 'meetingUrl', 'notes', 'scheduledAt', 'status', 'type', 'updatedAt'] as const
+  static $columns = ['applicationId', 'assignedTo', 'candidateConfirmation', 'candidateConfirmedAt', 'createdAt', 'createdBy', 'duration', 'id', 'location', 'meetingUrl', 'notes', 'scheduledAt', 'status', 'type', 'updatedAt'] as const
   $columns = InterviewSchema.$columns
   @column()
   declare applicationId: string
+  @column()
+  declare assignedTo: string | null
+  @column()
+  declare candidateConfirmation: string | null
+  @column.dateTime()
+  declare candidateConfirmedAt: DateTime | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
-  declare createdBy: string
+  declare createdBy: string | null
   @column()
   declare duration: number | null
   @column({ isPrimary: true })
@@ -407,6 +444,27 @@ export class InterviewSchema extends BaseModel {
   declare type: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class JobFormVersionSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'definition', 'id', 'jobId', 'publishedAt', 'updatedAt', 'version'] as const
+  $columns = JobFormVersionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: string | null
+  @column()
+  declare definition: any
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobId: string
+  @column.dateTime()
+  declare publishedAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare version: number
 }
 
 export class JobSkillSchema extends BaseModel {
@@ -448,8 +506,10 @@ export class JobStatusHistorySchema extends BaseModel {
 }
 
 export class JobSchema extends BaseModel {
-  static $columns = ['benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'headcount', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
+  static $columns = ['activeFormVersionId', 'benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'headcount', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
   $columns = JobSchema.$columns
+  @column()
+  declare activeFormVersionId: string | null
   @column()
   declare benefits: string | null
   @column()
@@ -558,6 +618,42 @@ export class OrganizationSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare website: string | null
+}
+
+export class PendingApplicationSchema extends BaseModel {
+  static $columns = ['candidateId', 'createdAt', 'email', 'expiresAt', 'formVersionId', 'id', 'jobId', 'payload', 'status', 'updatedAt'] as const
+  $columns = PendingApplicationSchema.$columns
+  @column()
+  declare candidateId: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare formVersionId: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobId: string
+  @column()
+  declare payload: any
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class RateLimitSchema extends BaseModel {
+  static $columns = ['expire', 'key', 'points'] as const
+  $columns = RateLimitSchema.$columns
+  @column()
+  declare expire: bigint | number | null
+  @column({ isPrimary: true })
+  declare key: string
+  @column()
+  declare points: number
 }
 
 export class RememberMeTokenSchema extends BaseModel {

@@ -13,7 +13,16 @@ export default class extends BaseSchema {
       table.string('recipient').notNullable()
       table.string('subject').nullable()
       table.text('body').nullable()
-      table.enum('type', ['application_received', 'application_rejected', 'interview_invitation', 'interview_reminder', 'offer', 'custom']).nullable()
+      table
+        .enum('type', [
+          'application_received',
+          'application_rejected',
+          'interview_invitation',
+          'interview_reminder',
+          'offer',
+          'custom',
+        ])
+        .nullable()
       table.enum('status', ['pending', 'sent', 'failed']).nullable().defaultTo('pending')
       table.timestamp('sent_at').nullable()
       table.timestamp('failed_at').nullable()

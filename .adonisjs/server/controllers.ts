@@ -4,10 +4,15 @@
  */
 
 export const controllers = {
+  Applications: () => import('#controllers/applications_controller'),
   Candidates: () => import('#controllers/candidates_controller'),
+  Career: () => import('#controllers/career_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
+  Interviews: () => import('#controllers/interviews_controller'),
+  JobForms: () => import('#controllers/job_forms_controller'),
   Jobs: () => import('#controllers/jobs_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
   Profile: () => import('#controllers/profile_controller'),
+  Reports: () => import('#controllers/reports_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
 }

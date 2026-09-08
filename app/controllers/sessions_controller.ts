@@ -20,5 +20,4 @@ export default class SessionController {
 
     return response.noContent()
   }
-
 }

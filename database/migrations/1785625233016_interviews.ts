@@ -12,7 +12,10 @@ export default class extends BaseSchema {
       table.enum('type', ['phone', 'video', 'onsite']).nullable()
       table.string('location').nullable()
       table.string('meeting_url').nullable()
-      table.enum('status', ['scheduled', 'completed', 'cancelled', 'rescheduled', 'no_show']).nullable().defaultTo('scheduled')
+      table
+        .enum('status', ['scheduled', 'completed', 'cancelled', 'rescheduled', 'no_show'])
+        .nullable()
+        .defaultTo('scheduled')
       table.text('notes').nullable()
       table.uuid('created_by').notNullable()
       table.timestamp('created_at').notNullable()

@@ -81,7 +81,9 @@ export default class DashboardStatsService {
    * Récupère le nombre de candidatures par statut (New, Screening, Interview, Offer)
    * pour l'organisation donnée.
    */
-  static async getApplicationStatusStats(organizationId: string): Promise<ApplicationStatusCount[]> {
+  static async getApplicationStatusStats(
+    organizationId: string
+  ): Promise<ApplicationStatusCount[]> {
     const statuses = ['new', 'screening', 'interview', 'offer']
 
     const rows = await db
