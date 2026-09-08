@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BUN_VERSION="1.3.10"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+step() {
+  local label="$1"
+  shift
+  echo "==> $label"
+  time "$@"
+}
+
+install_bun() {
+  if command -v bun >/dev/null 2>&1 && [[ "$(bun --version)" == "$BUN_VERSION" ]]; then
+    return
+  fi
+
+  curl -fsSL https://bun.com/install | bash -s "bun-v$BUN_VERSION"
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+
+  local marker="# kora Bun toolchain"
+  if ! grep -Fqx "$marker" "$HOME/.bash_profile" 2>/dev/null; then
+    cat >> "$HOME/.bash_profile" <<'EOF'
+
+# kora Bun toolchain
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+EOF
+  fi
+}
+
+install_services() {
+  local packages=()
+  command -v pg_isready >/dev/null 2>&1 || packages+=(postgresql)
+  command -v redis-server >/dev/null 2>&1 || packages+=(redis-server)
+
+  if (( ${#packages[@]} > 0 )); then
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
+  fi
+}
+
+start_services() {
+  sudo service postgresql start >/dev/null
+  sudo service redis-server start >/dev/null
+  pg_isready -q
+  [[ "$(redis-cli ping)" == "PONG" ]]
+}
+
+prepare_database() {
+  if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname = 'kora'" | grep -qx 1; then
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE ROLE kora LOGIN PASSWORD 'kora_dev'"
+  fi
+  if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'kora'" | grep -qx 1; then
+    sudo -u postgres createdb --owner=kora kora
+  fi
+}
+
+ensure_env() {
+  local key="$1"
+  local value="$2"
+
+  if grep -q "^${key}=$" "$repo_root/.env"; then
+    sed -i "s|^${key}=$|${key}=${value}|" "$repo_root/.env"
+  elif ! grep -q "^${key}=" "$repo_root/.env"; then
+    printf '%s=%s\n' "$key" "$value" >> "$repo_root/.env"
+  fi
+}
+
+prepare_env() {
+  if [[ ! -f "$repo_root/.env" ]]; then
+    cp -- "$repo_root/.env.example" "$repo_root/.env"
+  fi
+
+  ensure_env APP_KEY "$(openssl rand -hex 16)"
+  ensure_env DB_CONNECTION postgres
+  ensure_env DB_HOST 127.0.0.1
+  ensure_env DB_PORT 5432
+  ensure_env DB_USER kora
+  ensure_env DB_PASSWORD kora_dev
+  ensure_env DB_DATABASE kora
+  ensure_env LIMITER_STORE redis
+}
+
+step "Install Bun $BUN_VERSION" install_bun
+step "Install PostgreSQL and Redis" install_services
+step "Start PostgreSQL and Redis" start_services
+step "Create the development database" prepare_database
+step "Create local development configuration" prepare_env
+step "Install backend dependencies" bun install --cwd "$repo_root" --frozen-lockfile
+step "Run database migrations" bash -c "cd '$repo_root' && node ace migration:run --force"
+step "Seed development data" bash -c "cd '$repo_root' && node ace db:seed"
