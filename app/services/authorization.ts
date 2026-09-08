@@ -29,6 +29,7 @@ export const PERMISSIONS = [
   // Candidatures
   'applications.read',
   'applications.pipeline',
+  'applications.request_information',
 
   // Candidats
   'candidates.read',
@@ -60,9 +61,13 @@ const PIPELINE: readonly Permission[] = [
 /** Matrice rôle → permissions accordées */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   owner: [...PERMISSIONS],
-  admin: PERMISSIONS.filter((permission) => permission !== 'team.invite'),
+  admin: PERMISSIONS.filter(
+    (permission) =>
+      permission !== 'team.invite' && permission !== 'applications.request_information'
+  ),
   recruiter: [
     ...PIPELINE,
+    'applications.request_information',
     'jobs.create',
     'jobs.update',
     'jobs.publish',

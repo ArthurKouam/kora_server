@@ -14,6 +14,7 @@
         "@adonisjs/limiter": "^3.0.1",
         "@adonisjs/lucid": "^22.4.2",
         "@adonisjs/mail": "^10.4.0",
+        "@adonisjs/queue": "0.6.2",
         "@adonisjs/redis": "^10.0.0",
         "@adonisjs/session": "^8.1.0",
         "@adonisjs/shield": "^9.0.0",
@@ -97,6 +98,8 @@
     "@adonisjs/presets": ["@adonisjs/presets@3.0.0", "", { "peerDependencies": { "@adonisjs/assembler": "^8.0.0-next.9 || ^8.0.0", "@adonisjs/core": "^7.0.0-next.1 || ^7.0.0" }, "optionalPeers": ["@adonisjs/assembler"] }, "sha512-+gVIvyEiM7jiN5Gb93200TAC8ed3vZIPfxFFo0pIVgX8k40BleuYhWxFhI6TPocVXXIIpw2JuMFV2Pqjk36W2A=="],
 
     "@adonisjs/prettier-config": ["@adonisjs/prettier-config@1.5.0", "", { "dependencies": { "prettier-edge": "^1.0.0" } }, "sha512-im5V503HAaWSqmDWXV3k40KMCXvgurGNExkjGjvEkl2N7Wp+RcBN3pC6PAWUA1j4iukp4azzuuuR2tPFgnIkbA=="],
+
+    "@adonisjs/queue": ["@adonisjs/queue@0.6.2", "", { "dependencies": { "@boringnode/queue": "^0.6.0" }, "peerDependencies": { "@adonisjs/assembler": "^8.0.0", "@adonisjs/core": "^7.0.0", "@adonisjs/lucid": "^20.0.0 || ^21.0.0 || ^22.0.0", "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0" }, "optionalPeers": ["@adonisjs/lucid", "@adonisjs/redis"] }, "sha512-je+ynSzFw2RWHZUYZYILCtfLh/VptrMaR6gs4WUjM0KHOa8EMfSAxQskIkDpgq7wEaJ1me1cNGF9xylq/O+sfQ=="],
 
     "@adonisjs/redis": ["@adonisjs/redis@10.0.0", "", { "dependencies": { "@poppinss/utils": "^7.0.0", "emittery": "^1.2.0", "ioredis": "^5.9.3" }, "peerDependencies": { "@adonisjs/core": "^7.0.0-next.0 || ^7.0.0" } }, "sha512-3Wh+2HaxSNHE8LCdDu0QtucyTLoS75xhZDO8nPbaBCRSvLj4gO0dtzshYD7HbFUipkNV+rooJJQWqvsrs0JdJA=="],
 
@@ -182,6 +185,8 @@
 
     "@boringnode/encryption": ["@boringnode/encryption@1.0.1", "", { "dependencies": { "@poppinss/utils": "^7.0.1" } }, "sha512-+UL9erFUngnxNEDdXSKCnGQA8D62C/x2vxLF5vc9zaX7T2JolV/bGjpZAvFLzlY2gIffHyw+KsqsEWod5+zV0w=="],
 
+    "@boringnode/queue": ["@boringnode/queue@0.6.0", "", { "dependencies": { "@lukeed/ms": "^2.0.2", "@poppinss/utils": "^7.0.1", "cron-parser": "^5.6.1" }, "peerDependencies": { "@opentelemetry/api": "^1.9.0", "@opentelemetry/core": "^1.30.0 || ^2.0.0", "@opentelemetry/instrumentation": "^0.200.0", "ioredis": "^5.0.0", "knex": "^3.0.0" }, "optionalPeers": ["@opentelemetry/api", "@opentelemetry/core", "@opentelemetry/instrumentation", "ioredis", "knex"] }, "sha512-hgd9zKJUgZH8Y6ua2UKS1LJ4/fonVkJJnXRUxgmEyPpsJcle27WJ4KS30LRtTlCzX188pLUlj4CBzGMNyzVlEA=="],
+
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
     "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.10.1", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg=="],
@@ -229,6 +234,8 @@
     "@jest/get-type": ["@jest/get-type@30.1.0", "", {}, "sha512-eMbZE2hUnx1WV0pmURZY9XoXPkUYjpc55mb0CrhtdWLtzMQPFvu/rZkTLZFTsdaVQa+Tr4eWAteqcUzoawq/uA=="],
 
     "@jest/schemas": ["@jest/schemas@30.4.1", "", { "dependencies": { "@sinclair/typebox": "^0.34.0" } }, "sha512-i6b4qw5qnP8c5FEeBJg/uZQ4ddrkN6Ca8qISJh0pr7a5hfn3h3v5x60BEbOC7OYAGZNMs1LfFLwnW2CuK8F57Q=="],
+
+    "@lukeed/ms": ["@lukeed/ms@2.0.2", "", {}, "sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA=="],
 
     "@noble/hashes": ["@noble/hashes@1.8.0", "", {}, "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="],
 
@@ -527,6 +534,8 @@
     "cookiejar": ["cookiejar@2.1.4", "", {}, "sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw=="],
 
     "core-js-compat": ["core-js-compat@3.49.0", "", { "dependencies": { "browserslist": "^4.28.1" } }, "sha512-VQXt1jr9cBz03b331DFDCCP90b3fanciLkgiOoy8SBHy06gNf+vQ1A3WFLqG7I8TipYIKeYK9wxd0tUrvHcOZA=="],
+
+    "cron-parser": ["cron-parser@5.10.0", "", { "dependencies": { "luxon": "^3.7.2" } }, "sha512-izNAxJyRWUP8ljBoDSub5WyrVOUlT4SLGShswE7eoRBpp6QUsSycYxLBMJlbshgPBMcPT/nrfgjNY2918ayv2A=="],
 
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 

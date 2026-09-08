@@ -90,6 +90,18 @@ const routes = {
     tokens: [{"old":"/api/v1/career/interview-confirmations/:token","type":0,"val":"api","end":""},{"old":"/api/v1/career/interview-confirmations/:token","type":0,"val":"v1","end":""},{"old":"/api/v1/career/interview-confirmations/:token","type":0,"val":"career","end":""},{"old":"/api/v1/career/interview-confirmations/:token","type":0,"val":"interview-confirmations","end":""},{"old":"/api/v1/career/interview-confirmations/:token","type":1,"val":"token","end":""}],
     types: placeholder as Registry['career.respond_to_invitation']['types'],
   },
+  'information_requests.public_show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/career/information-requests/:token',
+    tokens: [{"old":"/api/v1/career/information-requests/:token","type":0,"val":"api","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"v1","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"career","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"information-requests","end":""},{"old":"/api/v1/career/information-requests/:token","type":1,"val":"token","end":""}],
+    types: placeholder as Registry['information_requests.public_show']['types'],
+  },
+  'information_requests.public_submit': {
+    methods: ["POST"],
+    pattern: '/api/v1/career/information-requests/:token',
+    tokens: [{"old":"/api/v1/career/information-requests/:token","type":0,"val":"api","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"v1","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"career","end":""},{"old":"/api/v1/career/information-requests/:token","type":0,"val":"information-requests","end":""},{"old":"/api/v1/career/information-requests/:token","type":1,"val":"token","end":""}],
+    types: placeholder as Registry['information_requests.public_submit']['types'],
+  },
   'dashboard.stats': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/dashboard/stats',
@@ -149,6 +161,42 @@ const routes = {
     pattern: '/api/v1/dashboard/applications/:id/status',
     tokens: [{"old":"/api/v1/dashboard/applications/:id/status","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/status","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/status","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/status","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/status","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/status","type":0,"val":"status","end":""}],
     types: placeholder as Registry['applications.update_status']['types'],
+  },
+  'information_requests.create': {
+    methods: ["POST"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"information-requests","end":""}],
+    types: placeholder as Registry['information_requests.create']['types'],
+  },
+  'information_requests.list': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests","type":0,"val":"information-requests","end":""}],
+    types: placeholder as Registry['information_requests.list']['types'],
+  },
+  'information_requests.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":0,"val":"information-requests","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId","type":1,"val":"requestId","end":""}],
+    types: placeholder as Registry['information_requests.show']['types'],
+  },
+  'information_requests.resend': {
+    methods: ["POST"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/resend',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"information-requests","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":1,"val":"requestId","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/resend","type":0,"val":"resend","end":""}],
+    types: placeholder as Registry['information_requests.resend']['types'],
+  },
+  'information_requests.cancel': {
+    methods: ["POST"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"information-requests","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":1,"val":"requestId","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel","type":0,"val":"cancel","end":""}],
+    types: placeholder as Registry['information_requests.cancel']['types'],
+  },
+  'information_requests.download_document': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId',
+    tokens: [{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"applications","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":1,"val":"id","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"information-requests","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":1,"val":"requestId","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":0,"val":"documents","end":""},{"old":"/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId","type":1,"val":"documentId","end":""}],
+    types: placeholder as Registry['information_requests.download_document']['types'],
   },
   'interviews.index_for_application': {
     methods: ["GET","HEAD"],

@@ -1,4 +1,5 @@
 import limiter from '@adonisjs/limiter/services/main'
+import { hashInformationRequestToken } from '#services/information_request_tokens'
 
 /**
  * Middlewares de rate limiting HTTP (clé = IP du consommateur).
@@ -25,3 +26,29 @@ export const careerApplyThrottle = limiter.define('career-apply', () => {
 export const otpVerifyThrottle = limiter.define('otp-verify', () => {
   return limiter.allowRequests(10).every('1 minute')
 })
+
+export const informationRequestGetIpThrottle = limiter.define('information-request-get-ip', () =>
+  limiter.allowRequests(60).every('1 minute')
+)
+
+export const informationRequestGetTokenThrottle = limiter.define(
+  'information-request-get-token',
+  (ctx) =>
+    limiter
+      .allowRequests(30)
+      .every('1 minute')
+      .usingKey(hashInformationRequestToken(String(ctx.params.token)))
+)
+
+export const informationRequestPostIpThrottle = limiter.define('information-request-post-ip', () =>
+  limiter.allowRequests(10).every('10 minutes')
+)
+
+export const informationRequestPostTokenThrottle = limiter.define(
+  'information-request-post-token',
+  (ctx) =>
+    limiter
+      .allowRequests(5)
+      .every('10 minutes')
+      .usingKey(hashInformationRequestToken(String(ctx.params.token)))
+)

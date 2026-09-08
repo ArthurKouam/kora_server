@@ -82,6 +82,8 @@ prepare_env() {
   ensure_env DB_PASSWORD kora_dev
   ensure_env DB_DATABASE kora
   ensure_env LIMITER_STORE redis
+  ensure_env FRONTEND_URL http://localhost:3000
+  ensure_env QUEUE_DRIVER redis
 }
 
 step "Install Bun $BUN_VERSION" install_bun

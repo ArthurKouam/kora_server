@@ -21,6 +21,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   // App
   APP_KEY: Env.schema.secret(),
   APP_URL: Env.schema.string({ format: 'url', tld: false }),
+  FRONTEND_URL: Env.schema.string({ format: 'url', tld: false }),
+
+  // Queues
+  QUEUE_DRIVER: Env.schema.enum(['redis', 'sync'] as const),
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
