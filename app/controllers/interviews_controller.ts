@@ -106,6 +106,7 @@ export default class InterviewsController {
           organizationId: organization!.id,
           applicationId: application.id,
           scheduledAtIso: interview.scheduledAt!.toISO()!,
+          timeZone: organization?.timezone ?? 'Africa/Douala',
           meetingOrLocation: interview.meetingUrl ?? interview.location ?? null,
           appBaseUrl,
           confirmToken,
