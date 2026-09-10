@@ -7,6 +7,49 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class ApplicationInformationRequestSchema extends BaseModel {
+  static $columns = ['answers', 'applicationId', 'cancelledAt', 'createdAt', 'definition', 'deliveryError', 'deliveryStatus', 'expiresAt', 'id', 'message', 'organizationId', 'requestedBy', 'responseDeliveryError', 'responseDeliveryStatus', 'sentAt', 'status', 'submittedAt', 'tokenHash', 'updatedAt'] as const
+  $columns = ApplicationInformationRequestSchema.$columns
+  @column()
+  declare answers: any | null
+  @column()
+  declare applicationId: string
+  @column.dateTime()
+  declare cancelledAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare definition: any
+  @column()
+  declare deliveryError: string | null
+  @column()
+  declare deliveryStatus: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare message: string | null
+  @column()
+  declare organizationId: string
+  @column()
+  declare requestedBy: string
+  @column()
+  declare responseDeliveryError: string | null
+  @column()
+  declare responseDeliveryStatus: string | null
+  @column.dateTime()
+  declare sentAt: DateTime | null
+  @column()
+  declare status: string
+  @column.dateTime()
+  declare submittedAt: DateTime | null
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class ApplicationNoteSchema extends BaseModel {
   static $columns = ['applicationId', 'authorId', 'content', 'createdAt', 'id', 'updatedAt'] as const
   $columns = ApplicationNoteSchema.$columns

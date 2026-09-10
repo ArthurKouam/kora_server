@@ -8,6 +8,7 @@ export const controllers = {
   Candidates: () => import('#controllers/candidates_controller'),
   Career: () => import('#controllers/career_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
+  InformationRequests: () => import('#controllers/information_requests_controller'),
   Interviews: () => import('#controllers/interviews_controller'),
   JobForms: () => import('#controllers/job_forms_controller'),
   Jobs: () => import('#controllers/jobs_controller'),

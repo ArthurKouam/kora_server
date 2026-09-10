@@ -34,6 +34,16 @@ export interface ApiDefinition {
     submitSlots: typeof routes['career.submit_slots']
     respondToInvitation: typeof routes['career.respond_to_invitation']
   }
+  informationRequests: {
+    publicShow: typeof routes['information_requests.public_show']
+    publicSubmit: typeof routes['information_requests.public_submit']
+    create: typeof routes['information_requests.create']
+    list: typeof routes['information_requests.list']
+    show: typeof routes['information_requests.show']
+    resend: typeof routes['information_requests.resend']
+    cancel: typeof routes['information_requests.cancel']
+    downloadDocument: typeof routes['information_requests.download_document']
+  }
   dashboard: {
     stats: typeof routes['dashboard.stats']
     upcomingInterviews: typeof routes['dashboard.upcoming_interviews']

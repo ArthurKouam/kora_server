@@ -18,6 +18,8 @@ export type ScannedRoutes = {
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.public_submit': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -28,6 +30,12 @@ export type ScannedRoutes = {
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.download_document': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'documentId': ParamValue} }
     'applications.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.create': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.list': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.show': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.resend': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.cancel': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.download_document': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue,'documentId': ParamValue} }
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.request_slots': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -48,6 +56,7 @@ export type ScannedRoutes = {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'career.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -57,6 +66,9 @@ export type ScannedRoutes = {
     'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.download_document': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'documentId': ParamValue} }
+    'information_requests.list': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.show': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.download_document': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue,'documentId': ParamValue} }
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
@@ -68,6 +80,7 @@ export type ScannedRoutes = {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'career.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -77,6 +90,9 @@ export type ScannedRoutes = {
     'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.download_document': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'documentId': ParamValue} }
+    'information_requests.list': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.show': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.download_document': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue,'documentId': ParamValue} }
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
@@ -91,6 +107,10 @@ export type ScannedRoutes = {
     'career.verify': { paramsTuple: [ParamValue,ParamValue]; params: {'slug': ParamValue,'pendingId': ParamValue} }
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.public_submit': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'information_requests.create': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'information_requests.resend': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
+    'information_requests.cancel': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
     'interviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.request_slots': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.store': { paramsTuple?: []; params?: {} }

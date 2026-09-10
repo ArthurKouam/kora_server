@@ -175,6 +175,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['respondToInvitation']>>>
     }
   }
+  'information_requests.public_show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/information-requests/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicShow']>>>
+    }
+  }
+  'information_requests.public_submit': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/information-requests/:token'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/information_request').submitInformationRequestValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/information_request').submitInformationRequestValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicSubmit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicSubmit']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'dashboard.stats': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/stats'
@@ -293,6 +317,78 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/application').updateApplicationStatusValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/applications_controller').default['updateStatus']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/applications_controller').default['updateStatus']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'information_requests.create': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/information_request').createInformationRequestValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/information_request').createInformationRequestValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['create']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['create']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'information_requests.list': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['list']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['list']>>>
+    }
+  }
+  'information_requests.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; requestId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['show']>>>
+    }
+  }
+  'information_requests.resend': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/resend'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; requestId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['resend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['resend']>>>
+    }
+  }
+  'information_requests.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; requestId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['cancel']>>>
+    }
+  }
+  'information_requests.download_document': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/applications/:id/information-requests/:requestId/documents/:documentId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue, ParamValue]
+      params: { id: ParamValue; requestId: ParamValue; documentId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['downloadDocument']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['downloadDocument']>>>
     }
   }
   'interviews.index_for_application': {

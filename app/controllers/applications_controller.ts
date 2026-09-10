@@ -146,11 +146,7 @@ export default class ApplicationsController {
 
     const document = await CandidateDocument.query()
       .where('id', String(params.documentId))
-      .where((query) =>
-        query
-          .where('application_id', application.id)
-          .orWhere('candidate_id', application.candidateId)
-      )
+      .where('application_id', application.id)
       .first()
 
     if (!document) {

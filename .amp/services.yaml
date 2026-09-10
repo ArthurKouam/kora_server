@@ -3,6 +3,12 @@ services:
     command: bun run dev
     env:
       HOST: 0.0.0.0
+      QUEUE_DRIVER: redis
     portal:
       title: Korahire API
+    agent: control
+  queue-worker:
+    command: node ace queue:work --queue=emails,maintenance
+    env:
+      QUEUE_DRIVER: redis
     agent: control

@@ -10,12 +10,18 @@
 import { middleware } from '#start/kernel'
 import {
   careerApplyThrottle,
+  informationRequestGetIpThrottle,
+  informationRequestGetTokenThrottle,
+  informationRequestPostIpThrottle,
+  informationRequestPostTokenThrottle,
   loginThrottle,
   otpVerifyThrottle,
   signupThrottle,
 } from '#start/limiter'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
+
+const InformationRequestsController = () => import('#controllers/information_requests_controller')
 
 router
   .group(() => {
@@ -51,6 +57,12 @@ router
         router.get('interview-slots/:token', [controllers.Career, 'showSlotRequest'])
         router.post('interview-slots/:token', [controllers.Career, 'submitSlots'])
         router.post('interview-confirmations/:token', [controllers.Career, 'respondToInvitation'])
+        router
+          .get('information-requests/:token', [InformationRequestsController, 'publicShow'])
+          .use([informationRequestGetIpThrottle, informationRequestGetTokenThrottle])
+        router
+          .post('information-requests/:token', [InformationRequestsController, 'publicSubmit'])
+          .use([informationRequestPostIpThrottle, informationRequestPostTokenThrottle])
       })
       .prefix('career')
 
@@ -73,6 +85,21 @@ router
         router
           .put('applications/:id/status', [controllers.Applications, 'updateStatus'])
           .use(middleware.permission({ permission: ['applications.pipeline'] }))
+
+        router
+          .group(() => {
+            router.post('/', [InformationRequestsController, 'create'])
+            router.get('/', [InformationRequestsController, 'list'])
+            router.get('/:requestId', [InformationRequestsController, 'show'])
+            router.post('/:requestId/resend', [InformationRequestsController, 'resend'])
+            router.post('/:requestId/cancel', [InformationRequestsController, 'cancel'])
+            router.get('/:requestId/documents/:documentId', [
+              InformationRequestsController,
+              'downloadDocument',
+            ])
+          })
+          .prefix('applications/:id/information-requests')
+          .use(middleware.permission({ permission: ['applications.request_information'] }))
 
         router
           .group(() => {
