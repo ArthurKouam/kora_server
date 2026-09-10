@@ -1,0 +1,8 @@
+services:
+  api:
+    command: bun run dev
+    env:
+      HOST: 0.0.0.0
+    portal:
+      title: Korahire API
+    agent: control

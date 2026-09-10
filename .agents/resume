@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sudo service postgresql start >/dev/null
+sudo service redis-server start >/dev/null
+
+pg_isready -q
+[[ "$(redis-cli ping)" == "PONG" ]]
+
+echo "PostgreSQL and Redis are ready"
