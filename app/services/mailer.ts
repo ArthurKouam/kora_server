@@ -113,10 +113,15 @@ export default class Mailer {
   }
 
   private static formatDateFr(iso: string): string {
+    // NB : "weekday" ne peut pas être combiné avec "dateStyle" (Intl lève une
+    // TypeError) — les options individuelles donnent "lundi 14 septembre 2026 à 14:00".
     return new Date(iso).toLocaleString('fr-FR', {
       weekday: 'long',
-      dateStyle: 'full',
-      timeStyle: 'short',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 

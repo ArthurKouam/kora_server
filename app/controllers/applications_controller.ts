@@ -105,7 +105,7 @@ export default class ApplicationsController {
           applicationId: application.id,
           candidateId: candidate.id,
           type: 'offer',
-        }).catch(() => false)
+        })
       } else if (payload.status === 'rejected') {
         await Mailer.send({
           to: candidate.email,
@@ -115,7 +115,7 @@ export default class ApplicationsController {
           applicationId: application.id,
           candidateId: candidate.id,
           type: 'application_rejected',
-        }).catch(() => false)
+        })
       }
     }
 

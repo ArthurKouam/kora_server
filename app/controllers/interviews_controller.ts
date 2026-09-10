@@ -109,7 +109,7 @@ export default class InterviewsController {
           meetingOrLocation: interview.meetingUrl ?? interview.location ?? null,
           appBaseUrl,
           confirmToken,
-        }).catch(() => false)
+        })
       }
     }
 
@@ -163,7 +163,7 @@ export default class InterviewsController {
       periodEndIso: `${payload.periodEnd}T23:59:59`,
       appBaseUrl,
       token,
-    }).catch(() => false)
+    })
 
     return response.created(slotRequest)
   }

@@ -429,7 +429,7 @@ export default class CareerController {
       organizationName,
       job.organizationId,
       outcome.application.id
-    ).catch(() => false)
+    )
 
     return response.created({
       id: outcome.application.id,
@@ -577,7 +577,7 @@ export default class CareerController {
           organizationId: job.organizationId,
           applicationId: application.id,
           chosenSlotsIso: chosenSlots,
-        }).catch(() => false)
+        })
       }
     }
 
