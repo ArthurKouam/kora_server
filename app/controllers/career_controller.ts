@@ -429,7 +429,7 @@ export default class CareerController {
       organizationName,
       job.organizationId,
       outcome.application.id
-    ).catch(() => false)
+    )
 
     return response.created({
       id: outcome.application.id,
@@ -569,6 +569,7 @@ export default class CareerController {
       const candidate = await application.related('candidate').query().first()
       const job = await application.related('job').query().first()
       if (candidate && job) {
+        const organization = await job.related('organization').query().first()
         await Mailer.sendSlotsConfirmation({
           to: candidate.email,
           candidateName:
@@ -577,7 +578,8 @@ export default class CareerController {
           organizationId: job.organizationId,
           applicationId: application.id,
           chosenSlotsIso: chosenSlots,
-        }).catch(() => false)
+          timeZone: organization?.timezone ?? 'Africa/Douala',
+        })
       }
     }
 

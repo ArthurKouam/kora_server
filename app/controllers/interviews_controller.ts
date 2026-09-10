@@ -106,10 +106,11 @@ export default class InterviewsController {
           organizationId: organization!.id,
           applicationId: application.id,
           scheduledAtIso: interview.scheduledAt!.toISO()!,
+          timeZone: organization?.timezone ?? 'Africa/Douala',
           meetingOrLocation: interview.meetingUrl ?? interview.location ?? null,
           appBaseUrl,
           confirmToken,
-        }).catch(() => false)
+        })
       }
     }
 
@@ -163,7 +164,7 @@ export default class InterviewsController {
       periodEndIso: `${payload.periodEnd}T23:59:59`,
       appBaseUrl,
       token,
-    }).catch(() => false)
+    })
 
     return response.created(slotRequest)
   }

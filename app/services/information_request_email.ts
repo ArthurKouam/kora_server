@@ -69,7 +69,7 @@ export async function sendInformationRequestEmail(options: {
 <p>${escapeHtml(options.organizationName)} souhaite obtenir des informations complémentaires concernant votre candidature au poste <strong>${escapeHtml(options.jobTitle)}</strong>.</p>
 ${customMessage}
 <p><a href="${escapeHtml(options.publicUrl)}">Répondre à la demande</a></p>
-<p>Cette demande expire le ${escapeHtml(options.expiresAt.toLocaleString(DateTime.DATETIME_FULL))}.</p>
+<p>Cette demande expire le ${escapeHtml(options.expiresAt.setLocale('fr-FR').toLocaleString(DateTime.DATETIME_FULL))}.</p>
 </div>`
 
   await sendAudited({

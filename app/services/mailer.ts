@@ -27,32 +27,55 @@ export interface SendEmailOptions {
  */
 export default class Mailer {
   static async send(options: SendEmailOptions): Promise<boolean> {
-    const row = await Email.create({
-      organizationId: options.organizationId,
-      applicationId: options.applicationId ?? null,
-      candidateId: options.candidateId ?? null,
-      recipient: options.to,
-      subject: options.subject,
-      body: options.html,
-      type: options.type ?? null,
-      status: 'pending',
-    })
+    let row: Email
+
+    try {
+      row = await Email.create({
+        organizationId: options.organizationId,
+        applicationId: options.applicationId ?? null,
+        candidateId: options.candidateId ?? null,
+        recipient: options.to,
+        subject: options.subject,
+        body: options.html,
+        type: options.type ?? null,
+        status: 'pending',
+      })
+    } catch (error) {
+      logger.error({ error }, `Impossible de journaliser l'email destiné à ${options.to}`)
+      return false
+    }
 
     try {
       await mail.send((message) => {
         message.to(options.to).subject(options.subject).html(options.html)
       })
-      row.status = 'sent'
-      row.sentAt = DateTime.now()
-      await row.save()
-      return true
     } catch (error) {
       logger.error({ error }, `Échec d'envoi email à ${options.to}`)
       row.status = 'failed'
+      row.failedAt = DateTime.now()
       row.error = String(error)
-      await row.save()
+      try {
+        await row.save()
+      } catch (auditError) {
+        logger.error(
+          { error: auditError },
+          `Impossible de journaliser l'échec d'envoi à ${options.to}`
+        )
+      }
       return false
     }
+
+    row.status = 'sent'
+    row.sentAt = DateTime.now()
+    try {
+      await row.save()
+    } catch (error) {
+      logger.error(
+        { error },
+        `Email envoyé à ${options.to}, mais son statut n'a pas pu être journalisé`
+      )
+    }
+    return true
   }
 
   private static layout(content: string): string {
@@ -112,11 +135,17 @@ export default class Mailer {
     })
   }
 
-  private static formatDateFr(iso: string): string {
+  private static formatDateFr(iso: string, timeZone: string): string {
+    // NB : "weekday" ne peut pas être combiné avec "dateStyle" (Intl lève une
+    // TypeError) — les options individuelles donnent "lundi 14 septembre 2026 à 14:00".
     return new Date(iso).toLocaleString('fr-FR', {
+      timeZone,
       weekday: 'long',
-      dateStyle: 'full',
-      timeStyle: 'short',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -175,12 +204,13 @@ ${slotsHtml}`,
     organizationId: string
     applicationId: string
     scheduledAtIso: string
+    timeZone: string
     meetingOrLocation: string | null
     appBaseUrl: string
     confirmToken: string
   }): Promise<boolean> {
     const t = this.interviewTexts
-    const when = this.formatDateFr(options.scheduledAtIso)
+    const when = this.formatDateFr(options.scheduledAtIso, options.timeZone)
     const base = `${options.appBaseUrl}/entretien/${options.confirmToken}`
     return this.send({
       to: options.to,
@@ -238,10 +268,11 @@ ${slotsHtml}`,
     organizationId: string
     applicationId: string
     chosenSlotsIso: string[]
+    timeZone: string
   }): Promise<boolean> {
     const t = this.interviewTexts
     const slotsHtml = `<ul>${options.chosenSlotsIso
-      .map((slot) => `<li>${this.formatDateFr(slot)}</li>`)
+      .map((slot) => `<li>${this.formatDateFr(slot, options.timeZone)}</li>`)
       .join('')}</ul>`
     return this.send({
       to: options.to,
