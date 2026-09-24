@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Job from '#models/job'
 import JobStatusHistory from '#models/job_status_history'
+import Form from '#models/form'
 import { createJobValidator, updateJobValidator } from '#validators/job'
 import { DateTime } from 'luxon'
 
@@ -68,6 +69,10 @@ export default class JobsController {
     }
 
     const payload = await request.validateUsing(createJobValidator)
+    if (payload.formId) {
+      const form = await Form.query().where('id', payload.formId).where('organization_id', user.organizationId).first()
+      if (!form) return response.unprocessableEntity({ errors: { formId: 'Formulaire introuvable.' } })
+    }
 
     const job = await Job.create({
       ...normalizeJobPayload(payload),
@@ -105,6 +110,7 @@ export default class JobsController {
     await job.load('organization')
     await job.load('user')
     await job.load('skills')
+    await job.load('form')
     await job.load('applications', (applicationsQuery) =>
       applicationsQuery.preload('candidate').orderBy('applied_at', 'desc')
     )
@@ -130,6 +136,10 @@ export default class JobsController {
       .firstOrFail()
 
     const payload = await request.validateUsing(updateJobValidator)
+    if (payload.formId) {
+      const form = await Form.query().where('id', payload.formId).where('organization_id', user.organizationId).first()
+      if (!form) return response.unprocessableEntity({ errors: { formId: 'Formulaire introuvable.' } })
+    }
 
     const previousStatus = job.status
     const willPublish = payload.status === 'published' && !job.publishedAt

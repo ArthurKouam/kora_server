@@ -19,10 +19,10 @@ export default class extends BaseSchema {
         .inTable('candidates')
         .onDelete('SET NULL')
       table
-        .uuid('form_version_id')
+        .uuid('form_id')
         .nullable()
         .references('id')
-        .inTable('job_form_versions')
+        .inTable('forms')
         .onDelete('SET NULL')
       // Payload validé en attente de vérification email :
       // { answers, coverLetter, documentIds: string[], cvDocumentId: string | null }

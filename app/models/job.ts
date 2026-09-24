@@ -6,7 +6,7 @@ import User from '#models/user'
 import JobSkill from '#models/job_skill'
 import Application from '#models/application'
 import Skill from '#models/skill'
-import JobFormVersion from '#models/job_form_version'
+import Form from '#models/form'
 
 export default class Job extends JobSchema {
   static selfAssignPrimaryKey = false
@@ -23,11 +23,8 @@ export default class Job extends JobSchema {
   @hasMany(() => Application)
   declare applications: HasMany<typeof Application>
 
-  @hasMany(() => JobFormVersion)
-  declare formVersions: HasMany<typeof JobFormVersion>
-
-  @belongsTo(() => JobFormVersion, { foreignKey: 'activeFormVersionId' })
-  declare activeFormVersion: BelongsTo<typeof JobFormVersion>
+  @belongsTo(() => Form)
+  declare form: BelongsTo<typeof Form>
 
   @manyToMany(() => Skill, {
     pivotTable: 'job_skills',

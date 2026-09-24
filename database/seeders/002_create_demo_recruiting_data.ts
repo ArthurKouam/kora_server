@@ -1,7 +1,7 @@
 import Application from '#models/application'
 import Interview from '#models/interview'
 import Job from '#models/job'
-import JobFormVersion from '#models/job_form_version'
+import Form from '#models/form'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { DateTime } from 'luxon'
 import Candidate from '#models/candidate'
@@ -10,7 +10,7 @@ import User from '#models/user'
 import ApplicationStatusHistory from '#models/application_status_history'
 
 /**
- * Démo complète : jobs (tous statuts), formulaire publié couvrant les 9 types
+ * Démo complète : jobs (tous statuts), formulaire couvrant les 9 types
  * de champs, candidats, candidatures avec réponses, entretiens.
  *
  * Comptes de test : arthur@acme.test / password123 (owner)
@@ -192,15 +192,14 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
       ],
     }
 
-    const formVersion = await JobFormVersion.create({
-      jobId: devJob.id,
-      version: 1,
+    const form = await Form.create({
+      name: 'Candidature développeur',
       definition: definition as any,
-      publishedAt: DateTime.now().minus({ days: 5 }),
+      organizationId: organization.id,
       createdBy: owner.id,
     })
 
-    devJob.activeFormVersionId = formVersion.id
+    devJob.formId = form.id
     await devJob.save()
 
     // ── Candidats + candidatures avec réponses réelles sur tous les types ─
@@ -304,7 +303,6 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
         appliedAt: DateTime.now().minus({ days: appliedDaysAgo }),
         rejectedAt: data.status === 'rejected' ? DateTime.now().minus({ days: 1 }) : null,
         hiredAt: data.status === 'hired' ? DateTime.now() : null,
-        formVersionId: formVersion.id,
         answers: data.answers,
       })
 

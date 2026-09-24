@@ -10,6 +10,7 @@ export default class extends BaseSchema {
       table.string('slug').notNullable().unique()
       table.string('logo_url').nullable()
       table.string('website').nullable()
+      table.text('about').nullable()
       table.text('description').nullable()
       table.string('industry').nullable()
       table.string('size').nullable()

@@ -29,6 +29,7 @@ export interface ApiDefinition {
   career: {
     show: typeof routes['career.show']
     apply: typeof routes['career.apply']
+    resendOtp: typeof routes['career.resend_otp']
     verify: typeof routes['career.verify']
     showSlotRequest: typeof routes['career.show_slot_request']
     submitSlots: typeof routes['career.submit_slots']
@@ -76,10 +77,11 @@ export interface ApiDefinition {
     update: typeof routes['jobs.update']
     destroy: typeof routes['jobs.destroy']
   }
-  jobForms: {
-    show: typeof routes['job_forms.show']
-    saveDraft: typeof routes['job_forms.save_draft']
-    publish: typeof routes['job_forms.publish']
-    destroy: typeof routes['job_forms.destroy']
+  forms: {
+    index: typeof routes['forms.index']
+    show: typeof routes['forms.show']
+    store: typeof routes['forms.store']
+    update: typeof routes['forms.update']
+    destroy: typeof routes['forms.destroy']
   }
 }

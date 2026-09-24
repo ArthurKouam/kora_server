@@ -66,10 +66,16 @@ const routes = {
     tokens: [{"old":"/api/v1/career/jobs/:slug/apply","type":0,"val":"api","end":""},{"old":"/api/v1/career/jobs/:slug/apply","type":0,"val":"v1","end":""},{"old":"/api/v1/career/jobs/:slug/apply","type":0,"val":"career","end":""},{"old":"/api/v1/career/jobs/:slug/apply","type":0,"val":"jobs","end":""},{"old":"/api/v1/career/jobs/:slug/apply","type":1,"val":"slug","end":""},{"old":"/api/v1/career/jobs/:slug/apply","type":0,"val":"apply","end":""}],
     types: placeholder as Registry['career.apply']['types'],
   },
+  'career.resend_otp': {
+    methods: ["POST"],
+    pattern: '/api/v1/career/jobs/:slug/resend',
+    tokens: [{"old":"/api/v1/career/jobs/:slug/resend","type":0,"val":"api","end":""},{"old":"/api/v1/career/jobs/:slug/resend","type":0,"val":"v1","end":""},{"old":"/api/v1/career/jobs/:slug/resend","type":0,"val":"career","end":""},{"old":"/api/v1/career/jobs/:slug/resend","type":0,"val":"jobs","end":""},{"old":"/api/v1/career/jobs/:slug/resend","type":1,"val":"slug","end":""},{"old":"/api/v1/career/jobs/:slug/resend","type":0,"val":"resend","end":""}],
+    types: placeholder as Registry['career.resend_otp']['types'],
+  },
   'career.verify': {
     methods: ["POST"],
-    pattern: '/api/v1/career/jobs/:slug/apply/:pendingId/verify',
-    tokens: [{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"api","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"v1","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"career","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"jobs","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":1,"val":"slug","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"apply","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":1,"val":"pendingId","end":""},{"old":"/api/v1/career/jobs/:slug/apply/:pendingId/verify","type":0,"val":"verify","end":""}],
+    pattern: '/api/v1/career/jobs/:slug/verify',
+    tokens: [{"old":"/api/v1/career/jobs/:slug/verify","type":0,"val":"api","end":""},{"old":"/api/v1/career/jobs/:slug/verify","type":0,"val":"v1","end":""},{"old":"/api/v1/career/jobs/:slug/verify","type":0,"val":"career","end":""},{"old":"/api/v1/career/jobs/:slug/verify","type":0,"val":"jobs","end":""},{"old":"/api/v1/career/jobs/:slug/verify","type":1,"val":"slug","end":""},{"old":"/api/v1/career/jobs/:slug/verify","type":0,"val":"verify","end":""}],
     types: placeholder as Registry['career.verify']['types'],
   },
   'career.show_slot_request': {
@@ -240,30 +246,6 @@ const routes = {
     tokens: [{"old":"/api/v1/dashboard/jobs","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs","type":0,"val":"jobs","end":""}],
     types: placeholder as Registry['jobs.store']['types'],
   },
-  'job_forms.show': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/v1/dashboard/jobs/form',
-    tokens: [{"old":"/api/v1/dashboard/jobs/form","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/form","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/form","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/form","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/form","type":0,"val":"form","end":""}],
-    types: placeholder as Registry['job_forms.show']['types'],
-  },
-  'job_forms.save_draft': {
-    methods: ["PUT"],
-    pattern: '/api/v1/dashboard/jobs/form/draft',
-    tokens: [{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"form","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"draft","end":""}],
-    types: placeholder as Registry['job_forms.save_draft']['types'],
-  },
-  'job_forms.publish': {
-    methods: ["POST"],
-    pattern: '/api/v1/dashboard/jobs/form/draft/publish',
-    tokens: [{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"form","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"draft","end":""},{"old":"/api/v1/dashboard/jobs/form/draft/publish","type":0,"val":"publish","end":""}],
-    types: placeholder as Registry['job_forms.publish']['types'],
-  },
-  'job_forms.destroy': {
-    methods: ["DELETE"],
-    pattern: '/api/v1/dashboard/jobs/form/draft',
-    tokens: [{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"form","end":""},{"old":"/api/v1/dashboard/jobs/form/draft","type":0,"val":"draft","end":""}],
-    types: placeholder as Registry['job_forms.destroy']['types'],
-  },
   'jobs.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/dashboard/jobs/:id',
@@ -281,6 +263,36 @@ const routes = {
     pattern: '/api/v1/dashboard/jobs/:id',
     tokens: [{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['jobs.destroy']['types'],
+  },
+  'forms.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/forms',
+    tokens: [{"old":"/api/v1/dashboard/forms","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"forms","end":""}],
+    types: placeholder as Registry['forms.index']['types'],
+  },
+  'forms.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/forms/:id',
+    tokens: [{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"forms","end":""},{"old":"/api/v1/dashboard/forms/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['forms.show']['types'],
+  },
+  'forms.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/dashboard/forms',
+    tokens: [{"old":"/api/v1/dashboard/forms","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/forms","type":0,"val":"forms","end":""}],
+    types: placeholder as Registry['forms.store']['types'],
+  },
+  'forms.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/dashboard/forms/:id',
+    tokens: [{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"forms","end":""},{"old":"/api/v1/dashboard/forms/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['forms.update']['types'],
+  },
+  'forms.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/dashboard/forms/:id',
+    tokens: [{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/forms/:id","type":0,"val":"forms","end":""},{"old":"/api/v1/dashboard/forms/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['forms.destroy']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

@@ -8,9 +8,19 @@ import PendingApplication from '#models/pending_application'
 import FileStorage from '#services/file_storage'
 import OtpService from '#services/otp_service'
 import Mailer from '#services/mailer'
+import {
+  decodeApplicationConfirmationToken,
+  encodeApplicationConfirmationToken,
+} from '#services/application_confirmation_tokens'
 import { validateAnswers } from '#services/form_answers_validator'
-import { applyValidator, submitSlotsValidator, verifyOtpValidator } from '#validators/career'
+import {
+  applyValidator,
+  resendOtpValidator,
+  submitSlotsValidator,
+  verifyOtpValidator,
+} from '#validators/career'
 import InterviewTokenService from '#services/interview_token_service'
+import env from '#start/env'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { FieldDefinition } from '#types/forms'
 import { DateTime } from 'luxon'
@@ -28,7 +38,7 @@ export default class CareerController {
       .where('slug', slug)
       .andWhere('status', 'published')
       .preload('organization', (organizationsQuery) =>
-        organizationsQuery.select('id', 'name', 'logo_url')
+        organizationsQuery.select('id', 'name', 'logo_url', 'about')
       )
       .first()
 
@@ -36,14 +46,10 @@ export default class CareerController {
       return response.notFound({ error: 'Job not found' })
     }
 
-    let form: { id: string; definition: unknown } | null = null
-    if (job.activeFormVersionId) {
-      const version = await job.related('activeFormVersion').query().first()
-      // Défense en profondeur : un pointeur vers un brouillon ne serait jamais exposé
-      if (version && version.publishedAt !== null) {
-        form = { id: version.id, definition: version.definition }
-      }
-    }
+    const jobForm = job.formId ? await job.related('form').query().first() : null
+    const form = jobForm
+      ? { id: jobForm.id, name: jobForm.name, definition: jobForm.definition }
+      : null
 
     return response.ok({
       job: {
@@ -66,7 +72,11 @@ export default class CareerController {
         closingDate: job.closingDate,
         publishedAt: job.publishedAt,
         organization: job.organization
-          ? { name: job.organization.name, logoUrl: job.organization.logoUrl }
+          ? {
+              name: job.organization.name,
+              logoUrl: job.organization.logoUrl,
+              about: job.organization.about,
+            }
           : null,
       },
       form,
@@ -109,15 +119,9 @@ export default class CareerController {
     }
 
     // Version publiée uniquement — jamais un draft
-    let formVersion = null
-    if (job.activeFormVersionId) {
-      formVersion = await job.related('activeFormVersion').query().first()
-      if (!formVersion || formVersion.publishedAt === null) {
-        return response.unprocessableEntity({ error: 'Form is not available' })
-      }
-    }
+    const form = job.formId ? await job.related('form').query().first() : null
 
-    const definition = (formVersion?.definition ?? { fields: [] }) as {
+    const definition = (form?.definition ?? { fields: [] }) as {
       fields: FieldDefinition[]
     }
     const answers = (payload.answers ?? {}) as Record<string, unknown>
@@ -254,7 +258,7 @@ export default class CareerController {
 
     if (pending) {
       pending.candidateId = candidate.id
-      pending.formVersionId = formVersion?.id ?? null
+      pending.formId = form?.id ?? null
       pending.payload = pendingPayload
       pending.expiresAt = DateTime.now().plus({ minutes: 60 })
       await pending.save()
@@ -263,7 +267,7 @@ export default class CareerController {
         email: payload.candidate.email.toLowerCase(),
         jobId: job.id,
         candidateId: candidate.id,
-        formVersionId: formVersion?.id ?? null,
+        formId: form?.id ?? null,
         payload: pendingPayload as never,
         status: 'pending',
         expiresAt: DateTime.now().plus({ minutes: 60 }),
@@ -282,28 +286,38 @@ export default class CareerController {
       }
       throw error
     }
-    await Mailer.sendOtp(
-      payload.candidate.email,
-      code,
-      job.title,
-      job.organization?.name ?? 'Korahire',
-      job.organizationId
+    const confirmationToken = encodeApplicationConfirmationToken(
+      pending.id,
+      pending.expiresAt.toMillis()
     )
+    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+    try {
+      await Mailer.sendOtp(
+        payload.candidate.email,
+        code,
+        job.title,
+        job.organization?.name ?? 'Korahire',
+        job.organizationId,
+        confirmationUrl
+      )
+    } catch (error) {
+      console.log(error)
+    }
 
     return response.accepted({
-      pendingApplicationId: pending.id,
+      confirmationToken,
       expiresAt: pending.expiresAt,
       message:
         'Un code de vérification a été envoyé par email. La candidature sera confirmée après saisie du code.',
     })
   }
 
-  /**
-   * POST /career/jobs/:slug/apply/:pendingId/verify
-   * Vérifie l'OTP puis crée DÉFINITIVEMENT la candidature (idempotent).
-   */
-  async verify({ params, request, response }: HttpContext) {
-    const { code } = await request.validateUsing(verifyOtpValidator)
+  async resendOtp({ params, request, response }: HttpContext) {
+    const { token } = await request.validateUsing(resendOtpValidator)
+    const pendingId = decodeApplicationConfirmationToken(token)
+    if (!pendingId) {
+      return response.unprocessableEntity({ error: 'Confirmation link is invalid or expired.' })
+    }
 
     const job = await Job.query()
       .where('slug', String(params.slug))
@@ -315,19 +329,120 @@ export default class CareerController {
     }
 
     const pending = await PendingApplication.query()
-      .where('id', String(params.pendingId))
+      .where('id', pendingId)
       .where('job_id', job.id)
-      .where('status', 'pending')
       .first()
 
     if (!pending) {
       return response.notFound({ error: 'Pending application not found' })
     }
 
-    if (pending.expiresAt <= DateTime.now()) {
-      pending.status = 'expired'
-      await pending.save()
+    if (pending.status === 'consumed') {
+      return response.conflict({ error: 'Cette candidature est déjà confirmée.' })
+    }
+
+    if (pending.status !== 'pending' || pending.expiresAt <= DateTime.now()) {
+      if (pending.status === 'pending') {
+        pending.status = 'expired'
+        await pending.save()
+      }
       return response.gone({ error: 'Verification expired. Please apply again.' })
+    }
+
+    let code: string
+    try {
+      code = await OtpService.request(pending.email, 'application_otp')
+    } catch (error) {
+      if ((error as Error).message === 'OTP_RATE_LIMITED') {
+        return response.tooManyRequests({
+          error: 'Trop de demandes de vérification. Réessayez dans quelques minutes.',
+        })
+      }
+      throw error
+    }
+
+    const organization = await job.related('organization').query().first()
+    const confirmationToken = encodeApplicationConfirmationToken(
+      pending.id,
+      pending.expiresAt.toMillis()
+    )
+    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+    await Mailer.sendOtp(
+      pending.email,
+      code,
+      job.title,
+      organization?.name ?? 'Korahire',
+      job.organizationId,
+      confirmationUrl
+    )
+
+    return response.accepted({
+      confirmationToken,
+      expiresAt: pending.expiresAt,
+      message: 'Un nouveau code de vérification a été envoyé par email.',
+    })
+  }
+
+  /**
+   * POST /career/jobs/:slug/verify
+   * Vérifie l'OTP puis crée DÉFINITIVEMENT la candidature (idempotent).
+   */
+  async verify({ params, request, response }: HttpContext) {
+    const { token, code } = await request.validateUsing(verifyOtpValidator)
+    const pendingId = decodeApplicationConfirmationToken(token)
+    if (!pendingId) {
+      return response.unprocessableEntity({ error: 'Confirmation link is invalid or expired.' })
+    }
+
+    const job = await Job.query()
+      .where('slug', String(params.slug))
+      .andWhere('status', 'published')
+      .first()
+
+    if (!job) {
+      return response.notFound({ error: 'Job not found' })
+    }
+
+    const pending = await PendingApplication.query()
+      .where('id', pendingId)
+      .where('job_id', job.id)
+      .first()
+
+    if (!pending) {
+      return response.notFound({ error: 'Pending application not found' })
+    }
+
+    if (pending.status === 'consumed') {
+      if (!pending.candidateId) {
+        return response.notFound({ error: 'Pending application not found' })
+      }
+
+      const existing = await Application.query()
+        .where('job_id', job.id)
+        .where('candidate_id', pending.candidateId)
+        .first()
+
+      if (!existing) {
+        return response.notFound({ error: 'Pending application not found' })
+      }
+
+      return response.ok({
+        id: existing.id,
+        status: existing.status,
+        appliedAt: existing.appliedAt,
+      })
+    }
+
+    if (pending.status === 'expired' || pending.expiresAt <= DateTime.now()) {
+      if (pending.status === 'pending') {
+        pending.status = 'expired'
+        await pending.save()
+      }
+      return response.gone({ error: 'Verification expired. Please apply again.' })
+    }
+
+    if (pending.status !== 'pending') {
+      return response.notFound({ error: 'Pending application not found' })
     }
 
     // Vérification du code (tentatives limitées, usage unique)
@@ -359,7 +474,11 @@ export default class CareerController {
     // Transaction : création finale idempotente
     // `created=false` signifie qu'une candidature valide existait déjà (Cas B)
     const outcome = await Application.transaction(async (trx) => {
-      const candidate = await Candidate.findBy('email', pending!.email, { client: trx })
+      if (!pending.candidateId) {
+        return { error: 'candidate_missing' as const }
+      }
+
+      const candidate = await Candidate.find(pending.candidateId, { client: trx })
 
       if (!candidate) {
         return { error: 'candidate_missing' as const }
@@ -387,7 +506,6 @@ export default class CareerController {
           coverLetter: payload.coverLetter ?? null,
           cvDocumentId: payload.cvDocumentId ?? null,
           appliedAt: DateTime.now(),
-          formVersionId: pending!.formVersionId,
           answers: payload.answers ?? {},
         },
         { client: trx }
@@ -417,10 +535,14 @@ export default class CareerController {
     }
 
     if (!outcome.created) {
-      return response.conflict({ error: 'Vous avez déjà postulé à cette offre.' })
+      return response.ok({
+        id: outcome.application.id,
+        status: outcome.application.status,
+        appliedAt: outcome.application.appliedAt,
+      })
     }
 
-    const candidate = await Candidate.findBy('email', pending.email)
+    const candidate = pending.candidateId ? await Candidate.find(pending.candidateId) : null
 
     await Mailer.sendApplicationConfirmation(
       pending.email,
@@ -436,6 +558,11 @@ export default class CareerController {
       status: outcome.application.status,
       appliedAt: outcome.application.appliedAt,
     })
+  }
+
+  private applicationConfirmationUrl(job: Job, token: string): string {
+    const frontendUrl = env.get('FRONTEND_URL').replace(/\/$/, '')
+    return `${frontendUrl}/careers/${encodeURIComponent(job.slug)}/confirm?token=${encodeURIComponent(token)}`
   }
 
   private async deleteDocument(id: string): Promise<void> {

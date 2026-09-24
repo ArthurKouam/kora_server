@@ -104,7 +104,7 @@ export class ApplicationTagSchema extends BaseModel {
 }
 
 export class ApplicationSchema extends BaseModel {
-  static $columns = ['answers', 'appliedAt', 'candidateId', 'coverLetter', 'createdAt', 'cvDocumentId', 'formVersionId', 'hiredAt', 'id', 'jobId', 'rejectedAt', 'source', 'status', 'updatedAt'] as const
+  static $columns = ['answers', 'appliedAt', 'candidateId', 'coverLetter', 'createdAt', 'cvDocumentId', 'hiredAt', 'id', 'jobId', 'rejectedAt', 'source', 'status', 'updatedAt'] as const
   $columns = ApplicationSchema.$columns
   @column()
   declare answers: any
@@ -118,8 +118,6 @@ export class ApplicationSchema extends BaseModel {
   declare createdAt: DateTime
   @column()
   declare cvDocumentId: string | null
-  @column()
-  declare formVersionId: string | null
   @column.dateTime()
   declare hiredAt: DateTime | null
   @column({ isPrimary: true })
@@ -431,6 +429,25 @@ export class EvaluationSchema extends BaseModel {
   declare weaknesses: string | null
 }
 
+export class FormSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'definition', 'id', 'name', 'organizationId', 'updatedAt'] as const
+  $columns = FormSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: string | null
+  @column()
+  declare definition: any
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare name: string
+  @column()
+  declare organizationId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class InterviewSlotRequestSchema extends BaseModel {
   static $columns = ['applicationId', 'chosenSlots', 'createdAt', 'id', 'periodEnd', 'periodStart', 'requestedSlots', 'status', 'updatedAt'] as const
   $columns = InterviewSlotRequestSchema.$columns
@@ -489,27 +506,6 @@ export class InterviewSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class JobFormVersionSchema extends BaseModel {
-  static $columns = ['createdAt', 'createdBy', 'definition', 'id', 'jobId', 'publishedAt', 'updatedAt', 'version'] as const
-  $columns = JobFormVersionSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-  @column()
-  declare createdBy: string | null
-  @column()
-  declare definition: any
-  @column({ isPrimary: true })
-  declare id: string
-  @column()
-  declare jobId: string
-  @column.dateTime()
-  declare publishedAt: DateTime | null
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
-  @column()
-  declare version: number
-}
-
 export class JobSkillSchema extends BaseModel {
   static $columns = ['createdAt', 'id', 'jobId', 'level', 'required', 'skillId'] as const
   $columns = JobSkillSchema.$columns
@@ -549,10 +545,8 @@ export class JobStatusHistorySchema extends BaseModel {
 }
 
 export class JobSchema extends BaseModel {
-  static $columns = ['activeFormVersionId', 'benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'headcount', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
+  static $columns = ['benefits', 'city', 'closingDate', 'country', 'createdAt', 'createdBy', 'description', 'employmentType', 'experienceLevel', 'formId', 'headcount', 'id', 'location', 'organizationId', 'publishedAt', 'requirements', 'responsibilities', 'salaryCurrency', 'salaryMax', 'salaryMin', 'slug', 'status', 'title', 'updatedAt', 'workplaceType'] as const
   $columns = JobSchema.$columns
-  @column()
-  declare activeFormVersionId: string | null
   @column()
   declare benefits: string | null
   @column()
@@ -571,6 +565,8 @@ export class JobSchema extends BaseModel {
   declare employmentType: string | null
   @column()
   declare experienceLevel: string | null
+  @column()
+  declare formId: string | null
   @column()
   declare headcount: number
   @column({ isPrimary: true })
@@ -627,8 +623,10 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class OrganizationSchema extends BaseModel {
-  static $columns = ['address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
+  static $columns = ['about', 'address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
   $columns = OrganizationSchema.$columns
+  @column()
+  declare about: string | null
   @column()
   declare address: string | null
   @column()
@@ -664,7 +662,7 @@ export class OrganizationSchema extends BaseModel {
 }
 
 export class PendingApplicationSchema extends BaseModel {
-  static $columns = ['candidateId', 'createdAt', 'email', 'expiresAt', 'formVersionId', 'id', 'jobId', 'payload', 'status', 'updatedAt'] as const
+  static $columns = ['candidateId', 'createdAt', 'email', 'expiresAt', 'formId', 'id', 'jobId', 'payload', 'status', 'updatedAt'] as const
   $columns = PendingApplicationSchema.$columns
   @column()
   declare candidateId: string | null
@@ -675,7 +673,7 @@ export class PendingApplicationSchema extends BaseModel {
   @column.dateTime()
   declare expiresAt: DateTime
   @column()
-  declare formVersionId: string | null
+  declare formId: string | null
   @column({ isPrimary: true })
   declare id: string
   @column()

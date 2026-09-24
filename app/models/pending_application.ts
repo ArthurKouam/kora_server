@@ -3,7 +3,7 @@ import { belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Job from '#models/job'
 import Candidate from '#models/candidate'
-import JobFormVersion from '#models/job_form_version'
+import Form from '#models/form'
 
 export default class PendingApplication extends PendingApplicationSchema {
   static selfAssignPrimaryKey = false
@@ -14,6 +14,6 @@ export default class PendingApplication extends PendingApplicationSchema {
   @belongsTo(() => Candidate)
   declare candidate: BelongsTo<typeof Candidate>
 
-  @belongsTo(() => JobFormVersion)
-  declare formVersion: BelongsTo<typeof JobFormVersion>
+  @belongsTo(() => Form)
+  declare form: BelongsTo<typeof Form>
 }

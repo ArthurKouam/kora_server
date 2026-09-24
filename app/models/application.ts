@@ -10,7 +10,6 @@ import ApplicationTag from '#models/application_tag'
 import Interview from '#models/interview'
 import Evaluation from '#models/evaluation'
 import Email from '#models/email'
-import JobFormVersion from '#models/job_form_version'
 
 export default class Application extends ApplicationSchema {
   static selfAssignPrimaryKey = false
@@ -23,9 +22,6 @@ export default class Application extends ApplicationSchema {
 
   @belongsTo(() => CandidateDocument, { foreignKey: 'cvDocumentId' })
   declare cvDocument: BelongsTo<typeof CandidateDocument>
-
-  @belongsTo(() => JobFormVersion, { foreignKey: 'formVersionId' })
-  declare formVersion: BelongsTo<typeof JobFormVersion>
 
   @hasMany(() => ApplicationStatusHistory)
   declare statusHistory: HasMany<typeof ApplicationStatusHistory>

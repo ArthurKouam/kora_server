@@ -14,7 +14,8 @@ export type ScannedRoutes = {
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
     'career.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.apply': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
-    'career.verify': { paramsTuple: [ParamValue,ParamValue]; params: {'slug': ParamValue,'pendingId': ParamValue} }
+    'career.resend_otp': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
+    'career.verify': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -43,13 +44,14 @@ export type ScannedRoutes = {
     'interviews.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'jobs.store': { paramsTuple?: []; params?: {} }
-    'job_forms.show': { paramsTuple?: []; params?: {} }
-    'job_forms.save_draft': { paramsTuple?: []; params?: {} }
-    'job_forms.publish': { paramsTuple?: []; params?: {} }
-    'job_forms.destroy': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.index': { paramsTuple?: []; params?: {} }
+    'forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.store': { paramsTuple?: []; params?: {} }
+    'forms.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
@@ -72,8 +74,9 @@ export type ScannedRoutes = {
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
-    'job_forms.show': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.index': { paramsTuple?: []; params?: {} }
+    'forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
@@ -96,15 +99,17 @@ export type ScannedRoutes = {
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
-    'job_forms.show': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.index': { paramsTuple?: []; params?: {} }
+    'forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.sessions.login': { paramsTuple?: []; params?: {} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
     'career.apply': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
-    'career.verify': { paramsTuple: [ParamValue,ParamValue]; params: {'slug': ParamValue,'pendingId': ParamValue} }
+    'career.resend_otp': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
+    'career.verify': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_submit': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -114,7 +119,7 @@ export type ScannedRoutes = {
     'interviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.request_slots': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.store': { paramsTuple?: []; params?: {} }
-    'job_forms.publish': { paramsTuple?: []; params?: {} }
+    'forms.store': { paramsTuple?: []; params?: {} }
   }
   PUT: {
     'profile.profile.update': { paramsTuple?: []; params?: {} }
@@ -122,12 +127,12 @@ export type ScannedRoutes = {
     'profile.profile.update_organization': { paramsTuple?: []; params?: {} }
     'applications.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'job_forms.save_draft': { paramsTuple?: []; params?: {} }
     'jobs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
-    'job_forms.destroy': { paramsTuple?: []; params?: {} }
     'jobs.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'forms.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

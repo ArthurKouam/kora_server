@@ -21,7 +21,15 @@ export const applyValidator = vine.create({
  * Vérification du code OTP envoyé par email.
  */
 export const verifyOtpValidator = vine.create({
-  code: vine.string().trim().minLength(6).maxLength(6),
+  token: vine.string().trim().minLength(1).maxLength(2048),
+  code: vine
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+})
+
+export const resendOtpValidator = vine.create({
+  token: vine.string().trim().minLength(1).maxLength(2048),
 })
 
 /**

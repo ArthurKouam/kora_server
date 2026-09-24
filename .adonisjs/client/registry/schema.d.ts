@@ -127,13 +127,25 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['apply']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'career.resend_otp': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/jobs/:slug/resend'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/career').resendOtpValidator)>>
+      paramsTuple: [ParamValue]
+      params: { slug: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/career').resendOtpValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['resendOtp']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['resendOtp']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'career.verify': {
     methods: ["POST"]
-    pattern: '/api/v1/career/jobs/:slug/apply/:pendingId/verify'
+    pattern: '/api/v1/career/jobs/:slug/verify'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
-      paramsTuple: [ParamValue, ParamValue]
-      params: { slug: ParamValue; pendingId: ParamValue }
+      paramsTuple: [ParamValue]
+      params: { slug: ParamValue }
       query: ExtractQuery<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>> | { status: 422; response: { errors: SimpleError[] } }
@@ -475,54 +487,6 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
-  'job_forms.show': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/dashboard/jobs/form'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['show']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['show']>>>
-    }
-  }
-  'job_forms.save_draft': {
-    methods: ["PUT"]
-    pattern: '/api/v1/dashboard/jobs/form/draft'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['saveDraft']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['saveDraft']>>>
-    }
-  }
-  'job_forms.publish': {
-    methods: ["POST"]
-    pattern: '/api/v1/dashboard/jobs/form/draft/publish'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
-    }
-  }
-  'job_forms.destroy': {
-    methods: ["DELETE"]
-    pattern: '/api/v1/dashboard/jobs/form/draft'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['destroy']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['destroy']>>>
-    }
-  }
   'jobs.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/jobs/:id'
@@ -557,6 +521,66 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['destroy']>>>
+    }
+  }
+  'forms.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/forms'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['index']>>>
+    }
+  }
+  'forms.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/forms/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['show']>>>
+    }
+  }
+  'forms.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/forms'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['store']>>>
+    }
+  }
+  'forms.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/forms/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['update']>>>
+    }
+  }
+  'forms.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/forms/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/forms_controller').default['destroy']>>>
     }
   }
 }

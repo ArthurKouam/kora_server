@@ -15,6 +15,7 @@ import {
   informationRequestPostIpThrottle,
   informationRequestPostTokenThrottle,
   loginThrottle,
+  otpResendThrottle,
   otpVerifyThrottle,
   signupThrottle,
 } from '#start/limiter'
@@ -22,6 +23,7 @@ import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 
 const InformationRequestsController = () => import('#controllers/information_requests_controller')
+const FormsController = () => import('#controllers/forms_controller')
 
 router
   .group(() => {
@@ -51,9 +53,8 @@ router
       .group(() => {
         router.get('jobs/:slug', [controllers.Career, 'show'])
         router.post('jobs/:slug/apply', [controllers.Career, 'apply']).use([careerApplyThrottle])
-        router
-          .post('jobs/:slug/apply/:pendingId/verify', [controllers.Career, 'verify'])
-          .use([otpVerifyThrottle])
+        router.post('jobs/:slug/resend', [controllers.Career, 'resendOtp']).use([otpResendThrottle])
+        router.post('jobs/:slug/verify', [controllers.Career, 'verify']).use([otpVerifyThrottle])
         router.get('interview-slots/:token', [controllers.Career, 'showSlotRequest'])
         router.post('interview-slots/:token', [controllers.Career, 'submitSlots'])
         router.post('interview-confirmations/:token', [controllers.Career, 'respondToInvitation'])
@@ -121,16 +122,6 @@ router
             router
               .post('/', [controllers.Jobs, 'store'])
               .use(middleware.permission({ permission: ['jobs.create'] }))
-            router.get('/form', [controllers.JobForms, 'show'])
-            router
-              .put('/form/draft', [controllers.JobForms, 'saveDraft'])
-              .use(middleware.permission({ permission: ['forms.update'] }))
-            router
-              .post('/form/draft/publish', [controllers.JobForms, 'publish'])
-              .use(middleware.permission({ permission: ['forms.publish'] }))
-            router
-              .delete('/form/draft', [controllers.JobForms, 'destroy'])
-              .use(middleware.permission({ permission: ['forms.update'] }))
             router.get('/:id', [controllers.Jobs, 'show'])
             router
               .put('/:id', [controllers.Jobs, 'update'])
@@ -140,6 +131,22 @@ router
               .use(middleware.permission({ permission: ['jobs.delete'] }))
           })
           .prefix('jobs')
+
+        router
+          .group(() => {
+            router.get('/', [FormsController, 'index'])
+            router.get('/:id', [FormsController, 'show'])
+            router
+              .post('/', [FormsController, 'store'])
+              .use(middleware.permission({ permission: ['forms.update'] }))
+            router
+              .put('/:id', [FormsController, 'update'])
+              .use(middleware.permission({ permission: ['forms.update'] }))
+            router
+              .delete('/:id', [FormsController, 'destroy'])
+              .use(middleware.permission({ permission: ['forms.update'] }))
+          })
+          .prefix('forms')
       })
       .prefix('dashboard')
       .use(middleware.auth())

@@ -30,6 +30,7 @@ export default class extends BaseSchema {
         .enum('source', ['career_page', 'linkedin', 'indeed', 'referral', 'direct', 'other'])
         .nullable()
       table.text('cover_letter').nullable()
+      table.jsonb('answers').notNullable().defaultTo('{}')
       table.uuid('cv_document_id').nullable()
       table.timestamp('applied_at').notNullable()
       table.timestamp('rejected_at').nullable()

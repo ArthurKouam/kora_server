@@ -24,26 +24,17 @@ export default class ApplicationsController {
       .where('id', String(params.id))
       .andWhereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
       .preload('candidate')
-      .preload('job', (jobsQuery) =>
-        jobsQuery.select('id', 'title', 'slug', 'location', 'city', 'country')
-      )
+      .preload('job', (jobsQuery) => jobsQuery.select('id', 'title', 'slug', 'location', 'city', 'country', 'form_id').preload('form'))
       .preload('cvDocument')
       .preload('statusHistory', (historyQuery) =>
         historyQuery.orderBy('created_at', 'asc').limit(50)
       )
       .firstOrFail()
 
-    // Définition exacte de la version à laquelle le candidat a répondu
-    let formDefinition = null
-    if (application.formVersionId) {
-      const formVersion = await application.related('formVersion').query().first()
-      formDefinition = formVersion?.definition ?? null
-    }
-
     return response.ok({
       ...application.serialize(),
-      formVersion: application.formVersionId
-        ? { id: application.formVersionId, definition: formDefinition }
+      formVersion: application.job.form
+        ? { id: application.job.form.id, definition: application.job.form.definition }
         : null,
     })
   }

@@ -92,18 +92,21 @@ export default class Mailer {
     code: string,
     jobTitle: string,
     organizationName: string,
-    organizationId: string
+    organizationId: string,
+    confirmationUrl: string
   ): Promise<boolean> {
     const html = this.layout(`
 <h2>Vérifiez votre adresse email</h2>
 <p>Voici votre code de vérification pour confirmer votre candidature au poste
 <strong>${jobTitle}</strong> chez <strong>${organizationName}</strong> :</p>
 <p style="font-size: 28px; letter-spacing: 8px; font-weight: 700;">${code}</p>
+<p><a href="${confirmationUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none;">Ouvrir ma confirmation</a></p>
+<p>Ouvrez ce lien pour saisir votre code. La candidature ne sera confirmée qu'après validation du code OTP.</p>
 <p>Ce code expire dans 10 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
 `)
     return this.send({
       to,
-      subject: `Votre code de vérification — ${jobTitle}`,
+      subject: `Votre code de vérification - ${jobTitle}`,
       html,
       organizationId,
       type: null,

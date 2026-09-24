@@ -27,6 +27,10 @@ export const otpVerifyThrottle = limiter.define('otp-verify', () => {
   return limiter.allowRequests(10).every('1 minute')
 })
 
+export const otpResendThrottle = limiter.define('otp-resend', () => {
+  return limiter.allowRequests(5).every('10 minutes')
+})
+
 export const informationRequestGetIpThrottle = limiter.define('information-request-get-ip', () =>
   limiter.allowRequests(60).every('1 minute')
 )
