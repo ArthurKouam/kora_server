@@ -37,8 +37,13 @@ node ace migration:rollback
 
 Vérifier `package.json` avant de supposer qu’un autre script existe.
 
+## Serveur distant — notifications
+
+Voir [`TELEGRAM.md`](./TELEGRAM.md). Ces conventions ne s’appliquent que lorsque le travail se fait sur un serveur distant, pas en local.
+
 ## Ce que l’agent doit faire
 
+- Notifier la fin des tâches via `tg-notify` quand on travaille sur un serveur distant, selon `TELEGRAM.md`.
 - Respecter le scoping multi-tenant sur toute nouvelle route ou requête staff.
 - Accompagner les changements de schéma du modèle Lucid correspondant.
 - Écrire des tests pour toute nouvelle route ou tout nouveau service.
