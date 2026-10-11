@@ -27,10 +27,12 @@ export interface ApiDefinition {
     }
   }
   career: {
+    index: typeof routes['career.index']
     show: typeof routes['career.show']
     apply: typeof routes['career.apply']
     verify: typeof routes['career.verify']
     showSlotRequest: typeof routes['career.show_slot_request']
+    showInvitation: typeof routes['career.show_invitation']
     submitSlots: typeof routes['career.submit_slots']
     respondToInvitation: typeof routes['career.respond_to_invitation']
   }

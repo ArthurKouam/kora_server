@@ -103,13 +103,25 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sessions_controller').default['destroy']>>>
     }
   }
-  'career.show': {
+  'career.index': {
     methods: ["GET","HEAD"]
-    pattern: '/api/v1/career/jobs/:slug'
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs'
     types: {
       body: {}
       paramsTuple: [ParamValue]
-      params: { slug: ParamValue }
+      params: { orgSlug: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/career').careerIndexValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'career.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { orgSlug: ParamValue; jobSlug: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['show']>>>
@@ -117,11 +129,11 @@ export interface Registry {
   }
   'career.apply': {
     methods: ["POST"]
-    pattern: '/api/v1/career/jobs/:slug/apply'
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug/apply'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/career').applyValidator)>>
-      paramsTuple: [ParamValue]
-      params: { slug: ParamValue }
+      paramsTuple: [ParamValue, ParamValue]
+      params: { orgSlug: ParamValue; jobSlug: ParamValue }
       query: ExtractQuery<InferInput<(typeof import('#validators/career').applyValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['apply']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['apply']>>> | { status: 422; response: { errors: SimpleError[] } }
@@ -129,11 +141,11 @@ export interface Registry {
   }
   'career.verify': {
     methods: ["POST"]
-    pattern: '/api/v1/career/jobs/:slug/apply/:pendingId/verify'
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
-      paramsTuple: [ParamValue, ParamValue]
-      params: { slug: ParamValue; pendingId: ParamValue }
+      paramsTuple: [ParamValue, ParamValue, ParamValue]
+      params: { orgSlug: ParamValue; jobSlug: ParamValue; pendingId: ParamValue }
       query: ExtractQuery<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>> | { status: 422; response: { errors: SimpleError[] } }
@@ -149,6 +161,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['showSlotRequest']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['showSlotRequest']>>>
+    }
+  }
+  'career.show_invitation': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/interview-invitations/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['showInvitation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['showInvitation']>>>
     }
   }
   'career.submit_slots': {
@@ -477,11 +501,11 @@ export interface Registry {
   }
   'job_forms.show': {
     methods: ["GET","HEAD"]
-    pattern: '/api/v1/dashboard/jobs/form'
+    pattern: '/api/v1/dashboard/jobs/:id/form'
     types: {
       body: {}
-      paramsTuple: []
-      params: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['show']>>>
@@ -489,11 +513,11 @@ export interface Registry {
   }
   'job_forms.save_draft': {
     methods: ["PUT"]
-    pattern: '/api/v1/dashboard/jobs/form/draft'
+    pattern: '/api/v1/dashboard/jobs/:id/form/draft'
     types: {
       body: {}
-      paramsTuple: []
-      params: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['saveDraft']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['saveDraft']>>>
@@ -501,11 +525,11 @@ export interface Registry {
   }
   'job_forms.publish': {
     methods: ["POST"]
-    pattern: '/api/v1/dashboard/jobs/form/draft/publish'
+    pattern: '/api/v1/dashboard/jobs/:id/form/draft/publish'
     types: {
       body: {}
-      paramsTuple: []
-      params: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
@@ -513,11 +537,11 @@ export interface Registry {
   }
   'job_forms.destroy': {
     methods: ["DELETE"]
-    pattern: '/api/v1/dashboard/jobs/form/draft'
+    pattern: '/api/v1/dashboard/jobs/:id/form/draft'
     types: {
       body: {}
-      paramsTuple: []
-      params: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['destroy']>>>

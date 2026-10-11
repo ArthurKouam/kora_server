@@ -27,6 +27,15 @@ export const otpVerifyThrottle = limiter.define('otp-verify', () => {
   return limiter.allowRequests(10).every('1 minute')
 })
 
+/**
+ * Liste publique des offres d'une organisation : endpoint non authentifié et
+ * paginé, mais la pagination borne déjà le coût par requête. Le plafond protège
+ * surtout du scraping massif plutôt que de l'usage humain.
+ */
+export const careerListThrottle = limiter.define('career-list', () => {
+  return limiter.allowRequests(60).every('1 minute')
+})
+
 export const informationRequestGetIpThrottle = limiter.define('information-request-get-ip', () =>
   limiter.allowRequests(60).every('1 minute')
 )

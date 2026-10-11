@@ -4,32 +4,158 @@ import InterviewSlotRequest from '#models/interview_slot_request'
 import Candidate from '#models/candidate'
 import CandidateDocument from '#models/candidate_document'
 import Job from '#models/job'
+import Organization from '#models/organization'
 import PendingApplication from '#models/pending_application'
 import FileStorage from '#services/file_storage'
 import OtpService from '#services/otp_service'
 import Mailer from '#services/mailer'
 import { validateAnswers } from '#services/form_answers_validator'
-import { applyValidator, submitSlotsValidator, verifyOtpValidator } from '#validators/career'
+import {
+  applyValidator,
+  careerIndexValidator,
+  EMPLOYMENT_TYPES,
+  parseCsvFilter,
+  submitSlotsValidator,
+  verifyOtpValidator,
+  WORKPLACE_TYPES,
+} from '#validators/career'
 import InterviewTokenService from '#services/interview_token_service'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { FieldDefinition } from '#types/forms'
 import { DateTime } from 'luxon'
 
 /**
- * Contrôleur public de la career page — aucune authentification.
- * N'expose que les offres publiées et la version PUBLIÉE du formulaire
- * (jamais un brouillon).
+ * Contrôleur public des career pages — aucune authentification.
+ * N'expose que les offres publiées et la version PUBLIÉE du formulaire.
+ *
+ * Les routes d'offres sont scopingées par organisation : `jobs` n'a qu'une
+ * unicité (organization_id, slug), donc un slug seul n'identifie pas une offre
+ * de façon univoque à l'échelle de la plateforme.
  */
 export default class CareerController {
+  private async resolveOrganization(orgSlug: string): Promise<Organization | null> {
+    return Organization.query()
+      .where('slug', orgSlug)
+      .select(
+        'id',
+        'name',
+        'slug',
+        'logo_url',
+        'description',
+        'website',
+        'industry',
+        'city',
+        'country'
+      )
+      .first()
+  }
+
+  /**
+   * Offre publiée d'une organisation donnée. Null si elle n'existe pas, n'est pas
+   * publiée, ou appartient à une autre organisation — volontairement indistinguable
+   * pour ne pas révéler l'existence d'une offre d'un autre tenant.
+   */
+  private async resolvePublishedJob(orgId: string, jobSlug: string): Promise<Job | null> {
+    return Job.query()
+      .where('organization_id', orgId)
+      .where('slug', jobSlug)
+      .andWhere('status', 'published')
+      .first()
+  }
+
+  /**
+   * GET /career/orgs/:orgSlug/jobs
+   * Liste paginée des offres publiées d'une organisation, avec filtres.
+   */
+  async index({ params, request, response }: HttpContext) {
+    const organization = await this.resolveOrganization(String(params.orgSlug))
+    if (!organization) {
+      return response.notFound({ error: 'Organization not found' })
+    }
+
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      employmentType,
+      workplaceType,
+      city,
+      country,
+    } = await request.validateUsing(careerIndexValidator)
+
+    const query = Job.query()
+      .where('organization_id', organization.id)
+      .andWhere('status', 'published')
+      .orderBy('published_at', 'desc')
+
+    if (search) {
+      await query.where((builder) => {
+        builder.whereILike('title', `%${search}%`).orWhereILike('description', `%${search}%`)
+      })
+    }
+    const employmentTypes = parseCsvFilter(employmentType, EMPLOYMENT_TYPES)
+    if (employmentTypes) {
+      await query.whereIn('employment_type', employmentTypes)
+    }
+
+    const workplaceTypes = parseCsvFilter(workplaceType, WORKPLACE_TYPES)
+    if (workplaceTypes) {
+      await query.whereIn('workplace_type', workplaceTypes)
+    }
+    if (city) {
+      await query.whereILike('city', `%${city}%`)
+    }
+    if (country) {
+      await query.whereILike('country', `%${country}%`)
+    }
+
+    const jobs = await query.paginate(page, limit)
+
+    return response.ok({
+      organization: {
+        name: organization.name,
+        slug: organization.slug,
+        logoUrl: organization.logoUrl,
+        description: organization.description,
+        website: organization.website,
+        industry: organization.industry,
+        city: organization.city,
+        country: organization.country,
+      },
+      data: jobs.all().map((job) => ({
+        id: job.id,
+        title: job.title,
+        slug: job.slug,
+        employmentType: job.employmentType,
+        workplaceType: job.workplaceType,
+        experienceLevel: job.experienceLevel,
+        location: job.location,
+        city: job.city,
+        country: job.country,
+        salaryMin: job.salaryMin,
+        salaryMax: job.salaryMax,
+        salaryCurrency: job.salaryCurrency,
+        publishedAt: job.publishedAt,
+        closingDate: job.closingDate,
+      })),
+      meta: jobs.getMeta(),
+    })
+  }
+
+  /**
+   * GET /career/orgs/:orgSlug/jobs/:jobSlug
+   * Détail d'une offre publiée + version publiée de son formulaire.
+   */
   async show({ params, response }: HttpContext) {
-    const slug = String(params.slug)
+    const organization = await this.resolveOrganization(String(params.orgSlug))
+    if (!organization) {
+      return response.notFound({ error: 'Organization not found' })
+    }
 
     const job = await Job.query()
-      .where('slug', slug)
+      .where('organization_id', organization.id)
+      .where('slug', String(params.jobSlug))
       .andWhere('status', 'published')
-      .preload('organization', (organizationsQuery) =>
-        organizationsQuery.select('id', 'name', 'logo_url')
-      )
       .first()
 
     if (!job) {
@@ -65,16 +191,14 @@ export default class CareerController {
         salaryCurrency: job.salaryCurrency,
         closingDate: job.closingDate,
         publishedAt: job.publishedAt,
-        organization: job.organization
-          ? { name: job.organization.name, logoUrl: job.organization.logoUrl }
-          : null,
+        organization: { name: organization.name, logoUrl: organization.logoUrl },
       },
       form,
     })
   }
 
   /**
-   * POST /career/jobs/:slug/apply
+   * POST /career/orgs/:orgSlug/jobs/:jobSlug/apply
    * Soumission publique d'une candidature (JSON ou multipart avec fichiers).
    * Ne fait jamais confiance à la validation frontend : les réponses sont
    * re-validées serveur contre la définition de la version publiée.
@@ -99,11 +223,12 @@ export default class CareerController {
 
     const payload = await request.validateUsing(applyValidator, { data: rawData })
 
-    const job = await Job.query()
-      .where('slug', String(params.slug))
-      .andWhere('status', 'published')
-      .first()
+    const organization = await this.resolveOrganization(String(params.orgSlug))
+    if (!organization) {
+      return response.notFound({ error: 'Organization not found' })
+    }
 
+    const job = await this.resolvePublishedJob(organization.id, String(params.jobSlug))
     if (!job) {
       return response.notFound({ error: 'Job not found' })
     }
@@ -188,8 +313,22 @@ export default class CareerController {
         })
         if (!file) continue
         if (!file.isValid) {
+          // Le CV a pu être écrit juste avant : on ne laisse pas de fichier orphelin.
+          await Promise.all(uploadedDocumentIds.map((id) => this.deleteDocument(id)))
           return response.unprocessableEntity({
             errors: { [field.id]: 'Fichier invalide ou trop volumineux.' },
+          })
+        }
+        const mimeType = file.headers?.['content-type'] ?? null
+        // Même garde-fou que dans information_requests_controller : si le recruteur a
+        // restreint les types acceptés, le content-type reçu doit y figurer.
+        if (
+          field.config?.accept?.length &&
+          (!mimeType || !field.config.accept.includes(mimeType))
+        ) {
+          await Promise.all(uploadedDocumentIds.map((id) => this.deleteDocument(id)))
+          return response.unprocessableEntity({
+            errors: { [field.id]: 'Type de fichier non autorisé.' },
           })
         }
         const stored = await FileStorage.store(file, 'application-documents')
@@ -239,7 +378,11 @@ export default class CareerController {
       .first()
 
     if (pending && pending.expiresAt <= DateTime.now()) {
-      // Cas D : tentative expirée → recyclée
+      // Cas D : tentative expirée → recyclée.
+      // Les fichiers de l'ancienne tentative deviennent inatteignables une fois le
+      // payload écrasé : on les supprime ici plutôt que de laisser le job de
+      // nettoyage les ramasser.
+      await this.deleteDocumentsFromPayload(pending.payload)
       pending.status = 'expired'
       await pending.save()
       pending = null
@@ -253,6 +396,10 @@ export default class CareerController {
     }
 
     if (pending) {
+      // Cas C : le payload précédent est écrasé. Ses documents deviennent
+      // inatteignables — on les supprime, sinon chaque resoumission du même email
+      // laisse une copie orpheline de chaque fichier sur le disque.
+      await this.deleteDocumentsFromPayload(pending.payload, uploadedDocumentIds)
       pending.candidateId = candidate.id
       pending.formVersionId = formVersion?.id ?? null
       pending.payload = pendingPayload
@@ -286,7 +433,7 @@ export default class CareerController {
       payload.candidate.email,
       code,
       job.title,
-      job.organization?.name ?? 'Korahire',
+      organization.name,
       job.organizationId
     )
 
@@ -299,17 +446,18 @@ export default class CareerController {
   }
 
   /**
-   * POST /career/jobs/:slug/apply/:pendingId/verify
+   * POST /career/orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify
    * Vérifie l'OTP puis crée DÉFINITIVEMENT la candidature (idempotent).
    */
   async verify({ params, request, response }: HttpContext) {
     const { code } = await request.validateUsing(verifyOtpValidator)
 
-    const job = await Job.query()
-      .where('slug', String(params.slug))
-      .andWhere('status', 'published')
-      .first()
+    const organization = await this.resolveOrganization(String(params.orgSlug))
+    if (!organization) {
+      return response.notFound({ error: 'Organization not found' })
+    }
 
+    const job = await this.resolvePublishedJob(organization.id, String(params.jobSlug))
     if (!job) {
       return response.notFound({ error: 'Job not found' })
     }
@@ -353,8 +501,8 @@ export default class CareerController {
       documentIds: string[]
     }
 
-    const jobOrganization = await job.related('organization').query().first()
-    const organizationName = jobOrganization?.name ?? 'Korahire'
+    // L'organisation est déjà résolue et scopingée : pas de relecture nécessaire.
+    const organizationName = organization.name
 
     // Transaction : création finale idempotente
     // `created=false` signifie qu'une candidature valide existait déjà (Cas B)
@@ -441,8 +589,22 @@ export default class CareerController {
   private async deleteDocument(id: string): Promise<void> {
     const document = await CandidateDocument.find(id)
     if (!document) return
-    await FileStorage.delete(document.filePath)
+    await FileStorage.delete(document.filePath).catch(() => {})
     await document.delete()
+  }
+
+  /** Supprime les documents d'un payload de candidature en attente. */
+  private async deleteDocumentsFromPayload(payload: unknown, keep: string[] = []): Promise<void> {
+    const data = (payload ?? {}) as {
+      documentIds?: string[]
+      cvDocumentId?: string | null
+    }
+    const kept = new Set(keep)
+    const ids = [
+      ...(data.documentIds ?? []),
+      ...(data.cvDocumentId ? [data.cvDocumentId] : []),
+    ].filter((id) => !kept.has(id))
+    await Promise.all(ids.map((id) => this.deleteDocument(id)))
   }
 
   /**
@@ -585,6 +747,47 @@ export default class CareerController {
 
     return response.created({
       chosenSlots: chosenSlots.map((slot) => DateTime.fromISO(slot).toISO()),
+    })
+  }
+
+  /**
+   * GET /career/interview-invitations/:token
+   * Détails de l'entretien lié à une invitation, pour que le candidat sache quand
+   * et où il est attendu avant de répondre.
+   */
+  async showInvitation({ params, response }: HttpContext) {
+    const decoded = InterviewTokenService.decode(String(params.token))
+    if (!decoded || decoded.kind !== 'invite') {
+      return response.notFound({ error: 'Invalid link' })
+    }
+
+    const interview = await Interview.find(decoded.id)
+    if (!interview) return response.notFound({ error: 'Interview not found' })
+
+    const application = await interview.related('application').query().first()
+    if (!application) return response.notFound({ error: 'Application not found' })
+
+    const [candidate, job] = await Promise.all([
+      application.related('candidate').query().first(),
+      application.related('job').query().first(),
+    ])
+    const organization = job ? await job.related('organization').query().first() : null
+
+    return response.ok({
+      candidateName: candidate
+        ? `${candidate.firstName ?? ''} ${candidate.lastName ?? ''}`.trim()
+        : '',
+      jobTitle: job?.title ?? '',
+      organizationName: organization?.name ?? '',
+      timeZone: organization?.timezone ?? 'Africa/Douala',
+      scheduledAt: interview.scheduledAt?.toISO(),
+      duration: interview.duration,
+      type: interview.type,
+      location: interview.location,
+      meetingUrl: interview.meetingUrl,
+      status: interview.status,
+      confirmation: interview.candidateConfirmation,
+      confirmedAt: interview.candidateConfirmedAt?.toISO(),
     })
   }
 

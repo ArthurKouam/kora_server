@@ -10,6 +10,7 @@
 import { middleware } from '#start/kernel'
 import {
   careerApplyThrottle,
+  careerListThrottle,
   informationRequestGetIpThrottle,
   informationRequestGetTokenThrottle,
   informationRequestPostIpThrottle,
@@ -49,12 +50,19 @@ router
 
     router
       .group(() => {
-        router.get('jobs/:slug', [controllers.Career, 'show'])
-        router.post('jobs/:slug/apply', [controllers.Career, 'apply']).use([careerApplyThrottle])
+        router.get('orgs/:orgSlug/jobs', [controllers.Career, 'index']).use([careerListThrottle])
+        router.get('orgs/:orgSlug/jobs/:jobSlug', [controllers.Career, 'show'])
         router
-          .post('jobs/:slug/apply/:pendingId/verify', [controllers.Career, 'verify'])
+          .post('orgs/:orgSlug/jobs/:jobSlug/apply', [controllers.Career, 'apply'])
+          .use([careerApplyThrottle])
+        router
+          .post('orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify', [
+            controllers.Career,
+            'verify',
+          ])
           .use([otpVerifyThrottle])
         router.get('interview-slots/:token', [controllers.Career, 'showSlotRequest'])
+        router.get('interview-invitations/:token', [controllers.Career, 'showInvitation'])
         router.post('interview-slots/:token', [controllers.Career, 'submitSlots'])
         router.post('interview-confirmations/:token', [controllers.Career, 'respondToInvitation'])
         router
@@ -121,15 +129,15 @@ router
             router
               .post('/', [controllers.Jobs, 'store'])
               .use(middleware.permission({ permission: ['jobs.create'] }))
-            router.get('/form', [controllers.JobForms, 'show'])
+            router.get('/:id/form', [controllers.JobForms, 'show'])
             router
-              .put('/form/draft', [controllers.JobForms, 'saveDraft'])
+              .put('/:id/form/draft', [controllers.JobForms, 'saveDraft'])
               .use(middleware.permission({ permission: ['forms.update'] }))
             router
-              .post('/form/draft/publish', [controllers.JobForms, 'publish'])
+              .post('/:id/form/draft/publish', [controllers.JobForms, 'publish'])
               .use(middleware.permission({ permission: ['forms.publish'] }))
             router
-              .delete('/form/draft', [controllers.JobForms, 'destroy'])
+              .delete('/:id/form/draft', [controllers.JobForms, 'destroy'])
               .use(middleware.permission({ permission: ['forms.update'] }))
             router.get('/:id', [controllers.Jobs, 'show'])
             router
