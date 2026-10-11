@@ -12,6 +12,14 @@ export type ScannedRoutes = {
     'profile.profile.update_password': { paramsTuple?: []; params?: {} }
     'profile.profile.update_organization': { paramsTuple?: []; params?: {} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
+    'billing.plans': { paramsTuple?: []; params?: {} }
+    'billing_webhook': { paramsTuple?: []; params?: {} }
+    'billing.subscription': { paramsTuple?: []; params?: {} }
+    'billing.payments': { paramsTuple?: []; params?: {} }
+    'billing.show_payment': { paramsTuple: [ParamValue]; params: {'reference': ParamValue} }
+    'billing.export_applications': { paramsTuple?: []; params?: {} }
+    'billing.checkout': { paramsTuple?: []; params?: {} }
+    'billing.confirm': { paramsTuple?: []; params?: {} }
     'career.index': { paramsTuple: [ParamValue]; params: {'orgSlug': ParamValue} }
     'career.show': { paramsTuple: [ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue} }
     'career.apply': { paramsTuple: [ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue} }
@@ -43,6 +51,8 @@ export type ScannedRoutes = {
     'interviews.request_slots': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
     'interviews.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'team.team.index': { paramsTuple?: []; params?: {} }
+    'team.team.invite': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'jobs.store': { paramsTuple?: []; params?: {} }
     'job_forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -56,6 +66,11 @@ export type ScannedRoutes = {
   GET: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'billing.plans': { paramsTuple?: []; params?: {} }
+    'billing.subscription': { paramsTuple?: []; params?: {} }
+    'billing.payments': { paramsTuple?: []; params?: {} }
+    'billing.show_payment': { paramsTuple: [ParamValue]; params: {'reference': ParamValue} }
+    'billing.export_applications': { paramsTuple?: []; params?: {} }
     'career.index': { paramsTuple: [ParamValue]; params: {'orgSlug': ParamValue} }
     'career.show': { paramsTuple: [ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -75,6 +90,7 @@ export type ScannedRoutes = {
     'information_requests.download_document': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue,'documentId': ParamValue} }
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
+    'team.team.index': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'job_forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -82,6 +98,11 @@ export type ScannedRoutes = {
   HEAD: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'billing.plans': { paramsTuple?: []; params?: {} }
+    'billing.subscription': { paramsTuple?: []; params?: {} }
+    'billing.payments': { paramsTuple?: []; params?: {} }
+    'billing.show_payment': { paramsTuple: [ParamValue]; params: {'reference': ParamValue} }
+    'billing.export_applications': { paramsTuple?: []; params?: {} }
     'career.index': { paramsTuple: [ParamValue]; params: {'orgSlug': ParamValue} }
     'career.show': { paramsTuple: [ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -101,6 +122,7 @@ export type ScannedRoutes = {
     'information_requests.download_document': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue,'documentId': ParamValue} }
     'interviews.index_for_application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.index_all': { paramsTuple?: []; params?: {} }
+    'team.team.index': { paramsTuple?: []; params?: {} }
     'jobs.index': { paramsTuple?: []; params?: {} }
     'job_forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -109,6 +131,9 @@ export type ScannedRoutes = {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.sessions.login': { paramsTuple?: []; params?: {} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
+    'billing_webhook': { paramsTuple?: []; params?: {} }
+    'billing.checkout': { paramsTuple?: []; params?: {} }
+    'billing.confirm': { paramsTuple?: []; params?: {} }
     'career.apply': { paramsTuple: [ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue} }
     'career.verify': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'orgSlug': ParamValue,'jobSlug': ParamValue,'pendingId': ParamValue} }
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
@@ -119,6 +144,7 @@ export type ScannedRoutes = {
     'information_requests.cancel': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
     'interviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'interviews.request_slots': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'team.team.invite': { paramsTuple?: []; params?: {} }
     'jobs.store': { paramsTuple?: []; params?: {} }
     'job_forms.publish': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }

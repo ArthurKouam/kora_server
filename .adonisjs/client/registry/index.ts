@@ -54,6 +54,54 @@ const routes = {
     tokens: [{"old":"/api/v1/account/logout","type":0,"val":"api","end":""},{"old":"/api/v1/account/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/account/logout","type":0,"val":"account","end":""},{"old":"/api/v1/account/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['profile.sessions.destroy']['types'],
   },
+  'billing.plans': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/billing/plans',
+    tokens: [{"old":"/api/v1/billing/plans","type":0,"val":"api","end":""},{"old":"/api/v1/billing/plans","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/plans","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/plans","type":0,"val":"plans","end":""}],
+    types: placeholder as Registry['billing.plans']['types'],
+  },
+  'billing_webhook': {
+    methods: ["POST"],
+    pattern: '/api/v1/billing/webhooks/notchpay',
+    tokens: [{"old":"/api/v1/billing/webhooks/notchpay","type":0,"val":"api","end":""},{"old":"/api/v1/billing/webhooks/notchpay","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/webhooks/notchpay","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/webhooks/notchpay","type":0,"val":"webhooks","end":""},{"old":"/api/v1/billing/webhooks/notchpay","type":0,"val":"notchpay","end":""}],
+    types: placeholder as Registry['billing_webhook']['types'],
+  },
+  'billing.subscription': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/billing/subscription',
+    tokens: [{"old":"/api/v1/billing/subscription","type":0,"val":"api","end":""},{"old":"/api/v1/billing/subscription","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/subscription","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/subscription","type":0,"val":"subscription","end":""}],
+    types: placeholder as Registry['billing.subscription']['types'],
+  },
+  'billing.payments': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/billing/payments',
+    tokens: [{"old":"/api/v1/billing/payments","type":0,"val":"api","end":""},{"old":"/api/v1/billing/payments","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/payments","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/payments","type":0,"val":"payments","end":""}],
+    types: placeholder as Registry['billing.payments']['types'],
+  },
+  'billing.show_payment': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/billing/payments/:reference',
+    tokens: [{"old":"/api/v1/billing/payments/:reference","type":0,"val":"api","end":""},{"old":"/api/v1/billing/payments/:reference","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/payments/:reference","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/payments/:reference","type":0,"val":"payments","end":""},{"old":"/api/v1/billing/payments/:reference","type":1,"val":"reference","end":""}],
+    types: placeholder as Registry['billing.show_payment']['types'],
+  },
+  'billing.export_applications': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/billing/applications/export',
+    tokens: [{"old":"/api/v1/billing/applications/export","type":0,"val":"api","end":""},{"old":"/api/v1/billing/applications/export","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/applications/export","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/applications/export","type":0,"val":"applications","end":""},{"old":"/api/v1/billing/applications/export","type":0,"val":"export","end":""}],
+    types: placeholder as Registry['billing.export_applications']['types'],
+  },
+  'billing.checkout': {
+    methods: ["POST"],
+    pattern: '/api/v1/billing/checkout',
+    tokens: [{"old":"/api/v1/billing/checkout","type":0,"val":"api","end":""},{"old":"/api/v1/billing/checkout","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/checkout","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/checkout","type":0,"val":"checkout","end":""}],
+    types: placeholder as Registry['billing.checkout']['types'],
+  },
+  'billing.confirm': {
+    methods: ["POST"],
+    pattern: '/api/v1/billing/confirm',
+    tokens: [{"old":"/api/v1/billing/confirm","type":0,"val":"api","end":""},{"old":"/api/v1/billing/confirm","type":0,"val":"v1","end":""},{"old":"/api/v1/billing/confirm","type":0,"val":"billing","end":""},{"old":"/api/v1/billing/confirm","type":0,"val":"confirm","end":""}],
+    types: placeholder as Registry['billing.confirm']['types'],
+  },
   'career.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/career/orgs/:orgSlug/jobs',
@@ -239,6 +287,18 @@ const routes = {
     pattern: '/api/v1/dashboard/interviews/:id',
     tokens: [{"old":"/api/v1/dashboard/interviews/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/interviews/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/interviews/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/interviews/:id","type":0,"val":"interviews","end":""},{"old":"/api/v1/dashboard/interviews/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['interviews.update']['types'],
+  },
+  'team.team.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/team',
+    tokens: [{"old":"/api/v1/dashboard/team","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/team","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/team","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/team","type":0,"val":"team","end":""}],
+    types: placeholder as Registry['team.team.index']['types'],
+  },
+  'team.team.invite': {
+    methods: ["POST"],
+    pattern: '/api/v1/dashboard/team/invitations',
+    tokens: [{"old":"/api/v1/dashboard/team/invitations","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/team/invitations","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/team/invitations","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/team/invitations","type":0,"val":"team","end":""},{"old":"/api/v1/dashboard/team/invitations","type":0,"val":"invitations","end":""}],
+    types: placeholder as Registry['team.team.invite']['types'],
   },
   'jobs.index': {
     methods: ["GET","HEAD"],

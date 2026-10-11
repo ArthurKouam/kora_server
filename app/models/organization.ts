@@ -1,10 +1,12 @@
 import { OrganizationSchema } from '#database/schema'
-import { hasMany } from '@adonisjs/lucid/orm'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Job from '#models/job'
 import Tag from '#models/tag'
 import EmailTemplate from '#models/email_template'
+import Plan from '#models/plan'
+import Payment from '#models/payment'
 
 export default class Organization extends OrganizationSchema {
   static selfAssignPrimaryKey = false
@@ -20,4 +22,10 @@ export default class Organization extends OrganizationSchema {
 
   @hasMany(() => EmailTemplate)
   declare emailTemplates: HasMany<typeof EmailTemplate>
+
+  @belongsTo(() => Plan)
+  declare plan: BelongsTo<typeof Plan>
+
+  @hasMany(() => Payment)
+  declare payments: HasMany<typeof Payment>
 }

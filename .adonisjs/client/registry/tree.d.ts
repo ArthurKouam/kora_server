@@ -26,6 +26,16 @@ export interface ApiDefinition {
       destroy: typeof routes['profile.sessions.destroy']
     }
   }
+  billing: {
+    plans: typeof routes['billing.plans']
+    subscription: typeof routes['billing.subscription']
+    payments: typeof routes['billing.payments']
+    showPayment: typeof routes['billing.show_payment']
+    exportApplications: typeof routes['billing.export_applications']
+    checkout: typeof routes['billing.checkout']
+    confirm: typeof routes['billing.confirm']
+  }
+  billingWebhook: typeof routes['billing_webhook']
   career: {
     index: typeof routes['career.index']
     show: typeof routes['career.show']
@@ -70,6 +80,12 @@ export interface ApiDefinition {
     requestSlots: typeof routes['interviews.request_slots']
     indexAll: typeof routes['interviews.index_all']
     update: typeof routes['interviews.update']
+  }
+  team: {
+    team: {
+      index: typeof routes['team.team.index']
+      invite: typeof routes['team.team.invite']
+    }
   }
   jobs: {
     index: typeof routes['jobs.index']

@@ -627,7 +627,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class OrganizationSchema extends BaseModel {
-  static $columns = ['address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
+  static $columns = ['address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'planExpiresAt', 'planId', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
   $columns = OrganizationSchema.$columns
   @column()
   declare address: string | null
@@ -651,6 +651,10 @@ export class OrganizationSchema extends BaseModel {
   declare name: string
   @column()
   declare phone: string | null
+  @column.dateTime()
+  declare planExpiresAt: DateTime | null
+  @column()
+  declare planId: string | null
   @column()
   declare size: string | null
   @column()
@@ -661,6 +665,45 @@ export class OrganizationSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare website: string | null
+}
+
+export class PaymentSchema extends BaseModel {
+  static $columns = ['amount', 'authorizationUrl', 'createdAt', 'currency', 'customerEmail', 'customerName', 'customerPhone', 'id', 'notchpayReference', 'orderReference', 'organizationId', 'paidAt', 'payload', 'planId', 'provider', 'status', 'updatedAt'] as const
+  $columns = PaymentSchema.$columns
+  @column()
+  declare amount: number
+  @column()
+  declare authorizationUrl: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare currency: string
+  @column()
+  declare customerEmail: string | null
+  @column()
+  declare customerName: string | null
+  @column()
+  declare customerPhone: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare notchpayReference: string | null
+  @column()
+  declare orderReference: string
+  @column()
+  declare organizationId: string
+  @column.dateTime()
+  declare paidAt: DateTime | null
+  @column()
+  declare payload: any | null
+  @column()
+  declare planId: string
+  @column()
+  declare provider: string
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class PendingApplicationSchema extends BaseModel {
@@ -684,6 +727,41 @@ export class PendingApplicationSchema extends BaseModel {
   declare payload: any
   @column()
   declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class PlanSchema extends BaseModel {
+  static $columns = ['contactEmail', 'createdAt', 'description', 'durationDays', 'features', 'id', 'isActive', 'isPublic', 'maxActiveJobs', 'maxMembers', 'name', 'priceXaf', 'slug', 'sortOrder', 'updatedAt'] as const
+  $columns = PlanSchema.$columns
+  @column()
+  declare contactEmail: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column()
+  declare durationDays: number
+  @column()
+  declare features: any
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare isActive: boolean
+  @column()
+  declare isPublic: boolean
+  @column()
+  declare maxActiveJobs: number | null
+  @column()
+  declare maxMembers: number | null
+  @column()
+  declare name: string
+  @column()
+  declare priceXaf: number | null
+  @column()
+  declare slug: string
+  @column()
+  declare sortOrder: number
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
@@ -775,6 +853,35 @@ export class UserSchema extends BaseModel {
   declare password: string
   @column()
   declare role: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class WebhookEventSchema extends BaseModel {
+  static $columns = ['attempts', 'createdAt', 'error', 'eventId', 'eventType', 'id', 'payload', 'processed', 'processedAt', 'provider', 'receivedAt', 'updatedAt'] as const
+  $columns = WebhookEventSchema.$columns
+  @column()
+  declare attempts: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare error: string | null
+  @column()
+  declare eventId: string
+  @column()
+  declare eventType: string
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare payload: string
+  @column()
+  declare processed: boolean
+  @column.dateTime()
+  declare processedAt: DateTime | null
+  @column()
+  declare provider: string
+  @column.dateTime()
+  declare receivedAt: DateTime
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

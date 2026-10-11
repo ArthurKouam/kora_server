@@ -283,4 +283,39 @@ ${slotsHtml}`,
       type: 'interview_invitation',
     })
   }
+
+  /** Invitation d'équipe : le lien porte un jeton chiffré, valable 7 jours. */
+  static async sendTeamInvitation(options: {
+    to: string
+    inviterName: string
+    organizationName: string
+    organizationId: string
+    invitationUrl: string
+    expiresInDays: number
+  }): Promise<boolean> {
+    return this.send({
+      to: options.to,
+      subject: `${options.inviterName} vous invite à rejoindre ${options.organizationName}`,
+      html: `
+        <p>Bonjour,</p>
+        <p>
+          <strong>${options.inviterName}</strong> vous invite à rejoindre l’espace
+          recrutement de <strong>${options.organizationName}</strong> sur KoraHire.
+        </p>
+        <p>
+          <a href="${options.invitationUrl}"
+             style="display:inline-block;padding:12px 20px;background:#0f172a;color:#fff;
+                    border-radius:6px;text-decoration:none">
+            Rejoindre l’organisation
+          </a>
+        </p>
+        <p style="color:#64748b;font-size:13px">
+          Ce lien expire dans ${options.expiresInDays} jours. Si vous n'attendiez pas
+          cette invitation, ignorez ce message.
+        </p>
+      `.trim(),
+      organizationId: options.organizationId,
+      type: 'custom',
+    })
+  }
 }
