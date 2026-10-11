@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Job from '#models/job'
 import JobStatusHistory from '#models/job_status_history'
+import Organization from '#models/organization'
+import PlanService from '#services/plan_service'
 import { createJobValidator, updateJobValidator } from '#validators/job'
 import { DateTime } from 'luxon'
 
@@ -68,6 +70,17 @@ export default class JobsController {
     }
 
     const payload = await request.validateUsing(createJobValidator)
+
+    // Quota d'offres actives du plan courant, avant toute écriture.
+    const organization = await Organization.find(user.organizationId)
+    if (!organization) {
+      return response.forbidden({ error: 'Organization not found' })
+    }
+
+    const quotaError = await PlanService.checkJobQuota(organization)
+    if (quotaError) {
+      return response.paymentRequired({ error: quotaError, code: 'job_quota_reached' })
+    }
 
     const job = await Job.create({
       ...normalizeJobPayload(payload),

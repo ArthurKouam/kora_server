@@ -48,4 +48,11 @@ router.use([
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
   permission: () => import('#middleware/permission_middleware'),
+  /**
+   * Refuse les écritures quand l'abonnement de l'organisation est expiré.
+   * La lecture et l'export restent ouvertes : un client qui a payé doit
+   * pouvoir récupérer ses données.
+   */
+  activeSubscription: () => import('#middleware/active_subscription_middleware'),
+  requireOrganization: () => import('#middleware/require_organization_middleware'),
 })

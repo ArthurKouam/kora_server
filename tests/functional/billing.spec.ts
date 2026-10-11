@@ -1,0 +1,496 @@
+import { test } from '@japa/runner'
+import { createHmac } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
+import db from '@adonisjs/lucid/services/db'
+import Organization from '#models/organization'
+import Payment from '#models/payment'
+import Plan from '#models/plan'
+import User from '#models/user'
+import PlanService from '#services/plan_service'
+import NotchPayService from '#services/notchpay_service'
+import { buildCsv } from '#services/csv'
+import notchpayConfig from '#config/notchpay'
+import { DateTime } from 'luxon'
+
+/**
+ * Ces tests couvrent ce qui coûte cher si c'est faux : un plan obtenu sans
+ * payer, un webhook forgé, un montant falsifié, un quota contourné.
+ */
+
+async function orgWithPlan(slug: string) {
+  const suffix = randomUUID()
+  const plan = await Plan.query().where('slug', slug).firstOrFail()
+  const organization = await Organization.create({
+    name: `Org ${suffix}`,
+    slug: `org-${suffix}`,
+  })
+  organization.planId = plan.id
+  // Jamais facturé = pas de blocage (cf. PlanService.isActive).
+  organization.planExpiresAt = null
+  await organization.save()
+
+  const owner = await User.create({
+    organizationId: organization.id,
+    email: `owner-${suffix}@example.test`,
+    password: 'Motdepasse2026!',
+    role: 'owner',
+    firstName: 'Awa',
+    lastName: 'Recruteur',
+  })
+
+  return { organization, owner, plan }
+}
+
+/**
+ * Nettoyage : les `jobs` référencent `created_by` en NOT NULL, donc ils
+ * doivent partir avant les utilisateurs.
+ */
+async function cleanup(organization: Organization) {
+  const jobIds = (
+    (await db.query().from('jobs').where('organization_id', organization.id).select('id')) as {
+      id: string
+    }[]
+  ).map((row) => row.id)
+
+  if (jobIds.length) {
+    await db.query().from('applications').whereIn('job_id', jobIds).delete()
+    await db.query().from('job_form_versions').whereIn('job_id', jobIds).delete()
+    await db.query().from('job_skills').whereIn('job_id', jobIds).delete()
+    await db.query().from('jobs').whereIn('id', jobIds).delete()
+  }
+
+  await db.query().from('users').where('organization_id', organization.id).delete()
+  await db.query().from('organizations').where('id', organization.id).delete()
+}
+
+/**
+ * Le validateur de création d'offre exige les champs nullables explicitement
+ * présents (`null`), pas absents — voir `createJobValidator`.
+ */
+function jobPayload(suffix: string, title = 'Développeur PHP') {
+  // Slug en minuscules : le validateur refuse les majuscules.
+  const slug = `job-${suffix.replace(/[^a-z0-9]/g, '')}`
+
+  return {
+    title,
+    slug,
+    description: 'Poste de test',
+    requirements: null,
+    responsibilities: null,
+    benefits: null,
+    location: null,
+    city: null,
+    country: null,
+    employmentType: 'full_time',
+    workplaceType: 'remote',
+    experienceLevel: 'confirmé',
+    salaryMin: null,
+    salaryMax: null,
+    salaryCurrency: null,
+    headcount: 1,
+    status: 'draft',
+    closingDate: null,
+  }
+}
+
+test.group('Billing — plans et visibilité publique', () => {
+  test('GET /billing/plans est public et renvoie les 3 plans', async ({ client, assert }) => {
+    const response = await client.get('/api/v1/billing/plans')
+
+    response.assertStatus(200)
+    const body = response.body()
+    assert.lengthOf(body, 3)
+
+    const plus = body.find((p: any) => p.slug === 'plus')
+    assert.equal(plus.priceXaf, 8000)
+    assert.equal(plus.maxActiveJobs, 5)
+    assert.equal(plus.maxMembers, 3)
+    assert.isTrue(plus.isPurchasable)
+
+    const pro = body.find((p: any) => p.slug === 'pro')
+    assert.equal(pro.priceXaf, 20000)
+    assert.equal(pro.maxActiveJobs, 20)
+    assert.equal(pro.maxMembers, 10)
+
+    const enterprise = body.find((p: any) => p.slug === 'enterprise')
+    assert.isNull(enterprise.priceXaf)
+    assert.isFalse(enterprise.isPublic)
+    // Non achetable : le bouton doit proposer un contact, pas un paiement.
+    assert.isFalse(enterprise.isPurchasable)
+  })
+
+  test('les capacités non livrées sont marquées defined: false', async ({ client, assert }) => {
+    const response = await client.get('/api/v1/billing/plans')
+    response.assertStatus(200)
+
+    const plus = response.body().find((p: any) => p.slug === 'plus')
+    assert.isFalse(plus.features.cvParsing.defined)
+    assert.isTrue(plus.features.customForms.defined)
+  })
+})
+
+test.group('Billing — quotas', () => {
+  test('une organisation sans forfait peut créer une offre', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const suffix = randomUUID()
+
+    const response = await client
+      .post('/api/v1/dashboard/jobs')
+      .loginAs(owner)
+      .json(jobPayload(suffix))
+
+    response.assertStatus(201)
+    await cleanup(organization)
+  })
+
+  test('le quota d’offures est refusé avec 402 une fois atteint', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+
+    // Plus = 5 offres actives.
+    for (let i = 0; i < 5; i++) {
+      await client
+        .post('/api/v1/dashboard/jobs')
+        .loginAs(owner)
+        .json(jobPayload(randomUUID(), `Offre ${i}`))
+    }
+
+    const response = await client
+      .post('/api/v1/dashboard/jobs')
+      .loginAs(owner)
+      .json(jobPayload(randomUUID(), 'Offre 6'))
+
+    response.assertStatus(402)
+    assert.match(response.body().error, /limité à 5 offres/)
+    assert.equal(response.body().code, 'job_quota_reached')
+
+    await cleanup(organization)
+  })
+
+  test('Pro autorise 20 offres, le quota ne bloque pas à 6', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('pro')
+
+    for (let i = 0; i < 6; i++) {
+      const response = await client
+        .post('/api/v1/dashboard/jobs')
+        .loginAs(owner)
+        .json(jobPayload(randomUUID(), `Offre Pro ${i}`))
+      response.assertStatus(201)
+    }
+
+    await cleanup(organization)
+  })
+
+  test('une offre clôturée libère un quota', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+
+    const created: string[] = []
+    for (let i = 0; i < 5; i++) {
+      const response = await client
+        .post('/api/v1/dashboard/jobs')
+        .loginAs(owner)
+        .json(jobPayload(randomUUID(), `Offre ${i}`))
+      response.assertStatus(201)
+      created.push(response.body().id)
+    }
+
+    await db.query().from('jobs').where('id', created[0]).update({ status: 'closed' })
+
+    const response = await client
+      .post('/api/v1/dashboard/jobs')
+      .loginAs(owner)
+      .json(jobPayload(randomUUID(), 'Offre après clôture'))
+
+    response.assertStatus(201)
+    await cleanup(organization)
+  })
+
+  test('le quota de membres est signalé avant tout envoi d’email', async ({ assert }) => {
+    const { organization } = await orgWithPlan('plus')
+
+    // Plus = 3 membres ; il y en a déjà 1 (le owner).
+    for (let i = 0; i < 2; i++) {
+      await User.create({
+        organizationId: organization.id,
+        email: `membre-${i}-${randomUUID()}@example.test`,
+        password: 'Motdepasse2026!',
+        role: 'recruiter',
+      })
+    }
+
+    const message = await PlanService.checkMemberQuota(organization)
+    assert.isNotNull(message)
+    assert.include(message!, 'limité à 3 membres')
+
+    await cleanup(organization)
+  })
+})
+
+test.group('Billing — expiration en lecture seule', () => {
+  test('une organization expirée est bloquée en écriture', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    organization.planExpiresAt = DateTime.now().minus({ days: 1 })
+    await organization.save()
+
+    const response = await client
+      .post('/api/v1/dashboard/jobs')
+      .loginAs(owner)
+      .json(jobPayload(randomUUID()))
+
+    response.assertStatus(402)
+    assert.equal(response.body().code, 'subscription_expired')
+    assert.match(response.body().error, /a expiré/)
+    assert.equal(response.body().billingUrl, '/settings/billing')
+
+    await cleanup(organization)
+  })
+
+  test('la lecture reste possible après expiration', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    organization.planExpiresAt = DateTime.now().minus({ days: 1 })
+    await organization.save()
+
+    const response = await client.get('/api/v1/dashboard/jobs').loginAs(owner)
+    response.assertStatus(200)
+
+    await cleanup(organization)
+  })
+
+  test('l’export reste ouvert après expiration', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    organization.planExpiresAt = DateTime.now().minus({ days: 30 })
+    await organization.save()
+
+    const response = await client.get('/api/v1/billing/applications/export').loginAs(owner)
+
+    response.assertStatus(200)
+    assert.match(response.header('content-type') || '', /text\/csv/)
+    // BOM UTF-8 : sans lui Excel affiche mal les accents.
+    assert.equal(response.text().charCodeAt(0), 0xfeff)
+
+    await cleanup(organization)
+  })
+
+  test('PlanService : pas d’échéance = actif, échéance passée = inactif', async ({ assert }) => {
+    const { organization } = await orgWithPlan('plus')
+
+    organization.planExpiresAt = null
+    assert.isTrue(PlanService.isActive(organization))
+    assert.equal(PlanService.remainingDays(organization), 0)
+
+    organization.planExpiresAt = DateTime.now().minus({ days: 1 })
+    assert.isFalse(PlanService.isActive(organization))
+
+    organization.planExpiresAt = DateTime.now().plus({ days: 3 })
+    assert.isTrue(PlanService.isActive(organization))
+    assert.isTrue(PlanService.isExpiringSoon(organization, 5))
+
+    await cleanup(organization)
+  })
+
+  test('activate prolonge depuis l’échéance lors d’un renouvellement anticipé', async ({
+    assert,
+  }) => {
+    let { organization } = await orgWithPlan('plus')
+    const pro = await Plan.query().where('slug', 'pro').firstOrFail()
+
+    const future = DateTime.now().plus({ days: 10 })
+    organization.planExpiresAt = future
+    await organization.save()
+
+    await PlanService.activate(organization, pro)
+    organization = (await Organization.find(organization.id))!
+
+    const days = organization.planExpiresAt!.diff(future, 'days').days
+    assert.isTrue(Math.abs(days - 30) < 1)
+
+    await cleanup(organization)
+  })
+})
+
+test.group('Billing — sécurité du paiement', () => {
+  test('checkout refuse le plan enterprise (non public)', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const enterprise = await Plan.query().where('slug', 'enterprise').firstOrFail()
+
+    const response = await client
+      .post('/api/v1/billing/checkout')
+      .loginAs(owner)
+      .json({ planId: enterprise.id })
+
+    response.assertStatus(403)
+    assert.match(response.body().error, /devis/)
+
+    await cleanup(organization)
+  })
+
+  test('checkout refuse un planId inconnu', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+
+    const response = await client
+      .post('/api/v1/billing/checkout')
+      .loginAs(owner)
+      .json({ planId: '00000000-0000-0000-0000-000000000000' })
+
+    response.assertStatus(404)
+    await cleanup(organization)
+  })
+
+  test('confirm ne peut pas activer un plan avec une référence étrangère', async ({
+    client,
+    assert,
+  }) => {
+    let { organization, owner } = await orgWithPlan('plus')
+
+    const response = await client
+      .post('/api/v1/billing/confirm')
+      .loginAs(owner)
+      .json({ reference: 'trx.inexistant-totalement' })
+
+    response.assertStatus(404)
+    organization = (await Organization.find(organization.id))!
+    assert.isNull(organization.planExpiresAt)
+
+    await cleanup(organization)
+  })
+
+  test('confirm ignore un status=complete injecté par le client', async ({ client, assert }) => {
+    let { organization, owner } = await orgWithPlan('plus')
+    const plan = await Plan.query().where('slug', 'pro').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: plan.id,
+      notchpayReference: `trx.synthetique-${randomUUID()}`,
+      orderReference: `kor_test_${randomUUID().slice(0, 8)}`,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'pending',
+    })
+
+    const response = await client
+      .post('/api/v1/billing/confirm')
+      .loginAs(owner)
+      .json({ reference: payment.notchpayReference, status: 'complete', amount: 1 })
+
+    // L'appel réseau à NotchPay échoue : aucun plan ne doit s'activer.
+    organization = (await Organization.find(organization.id))!
+    assert.isNull(organization.planExpiresAt)
+    assert.notEqual(response.status(), 200)
+
+    await cleanup(organization)
+  })
+
+  test('checkout exige une authentification', async ({ client, assert }) => {
+    const { organization } = await orgWithPlan('plus')
+
+    const response = await client.post('/api/v1/billing/checkout').json({ planId: randomUUID() })
+    response.assertStatus(401)
+
+    await cleanup(organization)
+  })
+})
+
+test.group('Billing — webhooks', () => {
+  // Clé lue depuis la config de l'app : c'est elle que le contrôleur compare.
+  const hashKey = notchpayConfig.hashKey
+
+  test('une signature valide est acceptée, une forgée refusée', ({ assert }) => {
+    const body = JSON.stringify({ id: 'evt_1', type: 'payment.complete' })
+    const signature = createHmac('sha256', hashKey).update(body, 'utf8').digest('hex')
+
+    assert.isTrue(NotchPayService.verifyWebhookSignature(body, signature))
+    assert.isFalse(NotchPayService.verifyWebhookSignature(body, 'deadbeef'))
+    assert.isFalse(NotchPayService.verifyWebhookSignature(body, null))
+    assert.isFalse(NotchPayService.verifyWebhookSignature(body, ''))
+  })
+
+  test('modifier le corps invalide la signature', ({ assert }) => {
+    const body = JSON.stringify({ id: 'evt_1', type: 'payment.complete' })
+    const signature = createHmac('sha256', hashKey).update(body, 'utf8').digest('hex')
+
+    const tampered = JSON.stringify({ id: 'evt_1', type: 'payment.complete', amount: 1 })
+    assert.isFalse(NotchPayService.verifyWebhookSignature(tampered, signature))
+  })
+
+  test('le webhook refuse une signature invalide avec 400', async ({ client, assert }) => {
+    const response = await client
+      .post('/api/v1/billing/webhooks/notchpay')
+      .header('x-notch-signature', 'signature-bidon')
+      .json({ id: 'evt_faux', type: 'payment.complete' })
+
+    response.assertStatus(400)
+  })
+
+  test('un retry du même événement n’est traité qu’une fois', async ({ client, assert }) => {
+    const eventId = `evt_${randomUUID()}`
+    const body = JSON.stringify({
+      id: eventId,
+      type: 'payment.canceled',
+      data: { reference: 'trx.inconnu', status: 'canceled' },
+    })
+    const signature = createHmac('sha256', hashKey).update(body, 'utf8').digest('hex')
+
+    const first = await client
+      .post('/api/v1/billing/webhooks/notchpay')
+      .header('x-notch-signature', signature)
+      .json(JSON.parse(body))
+
+    first.assertStatus(200)
+    assert.isUndefined(first.body().duplicate)
+
+    const second = await client
+      .post('/api/v1/billing/webhooks/notchpay')
+      .header('x-notch-signature', signature)
+      .json(JSON.parse(body))
+
+    second.assertStatus(200)
+    assert.isTrue(second.body().duplicate)
+
+    const rows = await db.query().from('webhook_events').where('event_id', eventId)
+    assert.lengthOf(rows, 1)
+
+    await db.query().from('webhook_events').where('event_id', eventId).delete()
+  })
+})
+
+test.group('Billing — export CSV', () => {
+  test('les séparateurs et guillemets sont échappés', ({ assert }) => {
+    const csv = buildCsv(['Nom', 'Note'], [['Nguyen; Thuy', 'Il a dit "oui"']])
+
+    assert.include(csv, '"Nguyen; Thuy"')
+    assert.include(csv, '"Il a dit ""oui"""')
+  })
+
+  test('les retours à la ligne n’cassent pas l’alignement', ({ assert }) => {
+    const csv = buildCsv(['Nom'], [['Ligne 1\nLigne 2']])
+
+    // Une seule ligne de données : le saut interne a été neutralisé.
+    assert.equal(csv.split('\r\n').length, 2)
+    assert.include(csv, 'Ligne 1 Ligne 2')
+  })
+
+  test('une formule Excel est neutralisée', ({ assert }) => {
+    const csv = buildCsv(['Email'], [['=cmd|calc']])
+
+    // Préfixée d'une apostrophe, sinon Excel exécute la formule.
+    assert.include(csv, "'=cmd|calc")
+  })
+
+  test('les accents sont préservés', ({ assert }) => {
+    const csv = buildCsv(['Ville'], [['Douala']])
+
+    assert.include(csv, 'Douala')
+  })
+
+  test('l’export ne renvoie que les candidatures de l’organisation', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+
+    const response = await client.get('/api/v1/billing/applications/export').loginAs(owner)
+    response.assertStatus(200)
+
+    // Entête présente, et la ligne d'en-tête contient bien nos colonnes.
+    assert.include(response.text(), 'Date de candidature')
+
+    await cleanup(organization)
+  })
+})

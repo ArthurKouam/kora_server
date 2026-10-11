@@ -5,6 +5,8 @@
 
 export const controllers = {
   Applications: () => import('#controllers/applications_controller'),
+  Billing: () => import('#controllers/billing_controller'),
+  BillingWebhook: () => import('#controllers/billing_webhook_controller'),
   Candidates: () => import('#controllers/candidates_controller'),
   Career: () => import('#controllers/career_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
@@ -16,4 +18,5 @@ export const controllers = {
   Profile: () => import('#controllers/profile_controller'),
   Reports: () => import('#controllers/reports_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
+  Team: () => import('#controllers/team_controller'),
 }

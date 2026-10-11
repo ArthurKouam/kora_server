@@ -103,6 +103,102 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sessions_controller').default['destroy']>>>
     }
   }
+  'billing.plans': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/billing/plans'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['plans']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['plans']>>>
+    }
+  }
+  'billing_webhook': {
+    methods: ["POST"]
+    pattern: '/api/v1/billing/webhooks/notchpay'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_webhook_controller').default['handle']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_webhook_controller').default['handle']>>>
+    }
+  }
+  'billing.subscription': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/billing/subscription'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['subscription']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['subscription']>>>
+    }
+  }
+  'billing.payments': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/billing/payments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['payments']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['payments']>>>
+    }
+  }
+  'billing.show_payment': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/billing/payments/:reference'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { reference: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['showPayment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['showPayment']>>>
+    }
+  }
+  'billing.export_applications': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/billing/applications/export'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/billing').exportApplicationsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['exportApplications']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['exportApplications']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'billing.checkout': {
+    methods: ["POST"]
+    pattern: '/api/v1/billing/checkout'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/billing').checkoutValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/billing').checkoutValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['checkout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['checkout']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'billing.confirm': {
+    methods: ["POST"]
+    pattern: '/api/v1/billing/confirm'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/billing').confirmValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/billing').confirmValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['confirm']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/billing_controller').default['confirm']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'career.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/career/orgs/:orgSlug/jobs'
@@ -473,6 +569,30 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/interview').updateInterviewValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/interviews_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/interviews_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team.team.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
+    }
+  }
+  'team.team.invite': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/billing').inviteMemberValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/billing').inviteMemberValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'jobs.index': {
