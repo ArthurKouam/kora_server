@@ -15,8 +15,10 @@ import {
   informationRequestGetTokenThrottle,
   informationRequestPostIpThrottle,
   informationRequestPostTokenThrottle,
+  forgotPasswordThrottle,
   loginThrottle,
   otpVerifyThrottle,
+  passwordResetThrottle,
   signupThrottle,
 } from '#start/limiter'
 import router from '@adonisjs/core/services/router'
@@ -30,6 +32,17 @@ router
       .group(() => {
         router.post('signup', [controllers.NewAccount, 'store']).use([signupThrottle])
         router.post('login', [controllers.Sessions, 'login']).use([loginThrottle])
+
+        // Mot de passe oublié — public, l'utilisateur ayant perdu ses accès.
+        router
+          .post('forgot-password', [controllers.PasswordReset, 'forgot'])
+          .use([forgotPasswordThrottle])
+        router
+          .get('reset-password/:token', [controllers.PasswordReset, 'show'])
+          .use([passwordResetThrottle])
+        router
+          .post('reset-password/:token', [controllers.PasswordReset, 'update'])
+          .use([passwordResetThrottle])
       })
       .prefix('auth')
       .as('auth')

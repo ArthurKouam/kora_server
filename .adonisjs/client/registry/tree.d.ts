@@ -14,6 +14,11 @@ export interface ApiDefinition {
     sessions: {
       login: typeof routes['auth.sessions.login']
     }
+    passwordReset: {
+      forgot: typeof routes['auth.password_reset.forgot']
+      show: typeof routes['auth.password_reset.show']
+      update: typeof routes['auth.password_reset.update']
+    }
   }
   profile: {
     profile: {

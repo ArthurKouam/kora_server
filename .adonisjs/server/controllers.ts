@@ -15,6 +15,7 @@ export const controllers = {
   JobForms: () => import('#controllers/job_forms_controller'),
   Jobs: () => import('#controllers/jobs_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
+  PasswordReset: () => import('#controllers/password_reset_controller'),
   Profile: () => import('#controllers/profile_controller'),
   Reports: () => import('#controllers/reports_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
