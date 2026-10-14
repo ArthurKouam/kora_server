@@ -28,3 +28,14 @@ export const loginValidator = vine.create({
   email: email(),
   password: vine.string(),
 })
+
+/** La réponse ne dira jamais si l'email existe : validation de forme seulement. */
+export const forgotPasswordValidator = vine.create({
+  email: email(),
+})
+
+/** Le jeton voyage dans l'URL : il est validé par le service. */
+export const resetPasswordValidator = vine.create({
+  password: password(),
+  passwordConfirmation: password().sameAs('password'),
+})

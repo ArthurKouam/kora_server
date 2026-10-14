@@ -284,6 +284,47 @@ ${slotsHtml}`,
     })
   }
 
+  /** Réinitialisation du mot de passe — le staff appartient toujours à une organisation. */
+  static async sendPasswordReset(options: {
+    to: string
+    firstName: string | null
+    resetUrl: string
+    expiresInMinutes: number
+    organizationId: string | null
+  }): Promise<boolean> {
+    const greeting = options.firstName ? `Bonjour ${options.firstName},` : 'Bonjour,'
+    const html = this.layout(`
+<h2>Réinitialisation de votre mot de passe</h2>
+<p>${greeting}</p>
+<p>Une réinitialisation a été demandée pour votre compte KoraHire. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :</p>
+<p>
+  <a href="${options.resetUrl}" style="display:inline-block;padding:12px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;margin:8px 0;">
+    Réinitialiser mon mot de passe
+  </a>
+</p>
+<p style="color:#64748b;font-size:13px">
+  Ce lien expire dans ${options.expiresInMinutes} minutes et ne peut être utilisé qu'une seule fois.
+  Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe actuel reste valable.
+</p>
+`)
+
+    // `emails.organization_id` est NOT NULL ; à défaut, on envoie sans journaliser.
+    if (!options.organizationId) {
+      await mail.send((message) => {
+        message.to(options.to).subject('Réinitialisation de votre mot de passe').html(html)
+      })
+      return true
+    }
+
+    return this.send({
+      to: options.to,
+      subject: 'Réinitialisation de votre mot de passe',
+      html,
+      organizationId: options.organizationId,
+      type: 'custom',
+    })
+  }
+
   /** Invitation d'équipe : le lien porte un jeton chiffré, valable 7 jours. */
   static async sendTeamInvitation(options: {
     to: string

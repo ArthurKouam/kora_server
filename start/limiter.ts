@@ -1,5 +1,6 @@
 import limiter from '@adonisjs/limiter/services/main'
 import { hashInformationRequestToken } from '#services/information_request_tokens'
+import { hashPasswordResetToken } from '#services/password_reset_service'
 
 /**
  * Middlewares de rate limiting HTTP (clé = IP du consommateur).
@@ -18,6 +19,21 @@ export const loginThrottle = limiter.define('login', () => {
 export const signupThrottle = limiter.define('signup', () => {
   return limiter.allowRequests(5).every('10 minutes')
 })
+
+/** Limite par IP ; la limite par utilisateur est dans le service. */
+export const forgotPasswordThrottle = limiter.define('forgot-password', () => {
+  const limit = limiter.allowRequests(5).every('10 minutes')
+  limit.blockFor('30 minutes')
+  return limit
+})
+
+/** Clé sur le lien : un lien volé reste limité même depuis une autre IP. */
+export const passwordResetThrottle = limiter.define('password-reset', (ctx) =>
+  limiter
+    .allowRequests(10)
+    .every('10 minutes')
+    .usingKey(hashPasswordResetToken(String(ctx.params.token)))
+)
 
 export const careerApplyThrottle = limiter.define('career-apply', () => {
   return limiter.allowRequests(10).every('10 minutes')

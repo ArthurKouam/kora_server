@@ -667,6 +667,29 @@ export class OrganizationSchema extends BaseModel {
   declare website: string | null
 }
 
+export class PasswordResetTokenSchema extends BaseModel {
+  static $columns = ['createdAt', 'email', 'expiresAt', 'id', 'requestIp', 'tokenHash', 'updatedAt', 'usedAt', 'userId'] as const
+  $columns = PasswordResetTokenSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare requestIp: string | null
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column.dateTime()
+  declare usedAt: DateTime | null
+  @column()
+  declare userId: string
+}
+
 export class PaymentSchema extends BaseModel {
   static $columns = ['amount', 'authorizationUrl', 'createdAt', 'currency', 'customerEmail', 'customerName', 'customerPhone', 'id', 'notchpayReference', 'orderReference', 'organizationId', 'paidAt', 'payload', 'planId', 'provider', 'status', 'updatedAt'] as const
   $columns = PaymentSchema.$columns

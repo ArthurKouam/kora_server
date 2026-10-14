@@ -7,6 +7,9 @@ export type ScannedRoutes = {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.sessions.login': { paramsTuple?: []; params?: {} }
+    'auth.password_reset.forgot': { paramsTuple?: []; params?: {} }
+    'auth.password_reset.show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'auth.password_reset.update': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.profile.update': { paramsTuple?: []; params?: {} }
     'profile.profile.update_password': { paramsTuple?: []; params?: {} }
@@ -65,6 +68,7 @@ export type ScannedRoutes = {
   }
   GET: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
+    'auth.password_reset.show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'billing.plans': { paramsTuple?: []; params?: {} }
     'billing.subscription': { paramsTuple?: []; params?: {} }
@@ -97,6 +101,7 @@ export type ScannedRoutes = {
   }
   HEAD: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
+    'auth.password_reset.show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'billing.plans': { paramsTuple?: []; params?: {} }
     'billing.subscription': { paramsTuple?: []; params?: {} }
@@ -130,6 +135,8 @@ export type ScannedRoutes = {
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.sessions.login': { paramsTuple?: []; params?: {} }
+    'auth.password_reset.forgot': { paramsTuple?: []; params?: {} }
+    'auth.password_reset.update': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
     'billing_webhook': { paramsTuple?: []; params?: {} }
     'billing.checkout': { paramsTuple?: []; params?: {} }
