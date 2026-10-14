@@ -35,6 +35,7 @@ jobs:
           LOG_LEVEL: info
           APP_KEY: ci-only-test-key-not-a-real-secret
           APP_URL: http://localhost:3333
+          FRONTEND_URL: http://localhost:3000
           SESSION_DRIVER: memory
           DB_CONNECTION: sqlite
           DB_HOST: localhost
