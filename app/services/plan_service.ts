@@ -147,6 +147,13 @@ export default class PlanService {
         maxActiveJobs: plan?.maxActiveJobs ?? null,
         maxMembers: plan?.maxMembers ?? null,
       },
+      /**
+       * Capacités d'accès sans quota. Le frontend s'en sert pour afficher ou
+       * masquer un menu plutôt que de laisser tomber sur une page verrouillée.
+       */
+      capabilities: {
+        talentPool: this.planHasFeature(plan, 'talentPool'),
+      },
     }
   }
 
@@ -156,6 +163,27 @@ export default class PlanService {
       .where('is_active', true)
       .where('is_public', true)
       .orderBy('sort_order', 'asc')
+  }
+
+  /**
+   * Le forfait inclut-il cette capacité ? Lue dans `plans.features` et non
+   * déduite du prix : le vivier est réservé aux forfaits ≥ 20 000 XAF, mais
+   * reste une donnée commerciale.
+   */
+  static async hasFeature(organization: Organization, feature: string): Promise<boolean> {
+    const plan = await this.forOrganization(organization)
+    return this.planHasFeature(plan, feature)
+  }
+
+  static planHasFeature(plan: Plan | null, feature: string): boolean {
+    const features = (plan?.features ?? {}) as Record<string, { defined?: boolean }>
+    return features[feature]?.defined === true
+  }
+
+  /** Premier forfait, en ordre commercial, incluant la capacité. */
+  static async firstPlanWithFeature(feature: string): Promise<Plan | null> {
+    const plans = await Plan.query().where('is_active', true).orderBy('sort_order', 'asc')
+    return plans.find((plan) => this.planHasFeature(plan, feature)) ?? null
   }
 
   /** Tous les plans, y compris enterprise — pour l'affichage marketing. */

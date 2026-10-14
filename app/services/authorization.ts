@@ -34,6 +34,10 @@ export const PERMISSIONS = [
   // Candidats
   'candidates.read',
 
+  // Vivier de talents
+  'talent_pool.read',
+  'talent_pool.manage',
+
   // Entretiens
   'interviews.schedule',
   'interviews.update',
@@ -48,11 +52,17 @@ export const PERMISSIONS = [
 
 export type Permission = (typeof PERMISSIONS)[number]
 
-const READ_ONLY: readonly Permission[] = ['jobs.read', 'applications.read', 'candidates.read']
+const READ_ONLY: readonly Permission[] = [
+  'jobs.read',
+  'applications.read',
+  'candidates.read',
+  'talent_pool.read',
+]
 
 const PIPELINE: readonly Permission[] = [
   ...READ_ONLY,
   'applications.pipeline',
+  'talent_pool.manage',
   'interviews.schedule',
   'interviews.update',
   'interviews.feedback',

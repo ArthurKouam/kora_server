@@ -851,6 +851,69 @@ export class TagSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class TalentPoolEntrySchema extends BaseModel {
+  static $columns = ['addedBy', 'archivedAt', 'candidateId', 'consentAt', 'createdAt', 'id', 'legalBasis', 'organizationId', 'removalReason', 'retentionExpiresAt', 'source', 'sourceApplicationId', 'status', 'updatedAt'] as const
+  $columns = TalentPoolEntrySchema.$columns
+  @column()
+  declare addedBy: string | null
+  @column.dateTime()
+  declare archivedAt: DateTime | null
+  @column()
+  declare candidateId: string
+  @column.dateTime()
+  declare consentAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare legalBasis: string
+  @column()
+  declare organizationId: string
+  @column()
+  declare removalReason: string | null
+  @column.dateTime()
+  declare retentionExpiresAt: DateTime
+  @column()
+  declare source: string
+  @column()
+  declare sourceApplicationId: string | null
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class TalentPoolNoteSchema extends BaseModel {
+  static $columns = ['authorId', 'content', 'createdAt', 'id', 'talentPoolEntryId', 'updatedAt'] as const
+  $columns = TalentPoolNoteSchema.$columns
+  @column()
+  declare authorId: string | null
+  @column()
+  declare content: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare talentPoolEntryId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class TalentPoolTagSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'tagId', 'talentPoolEntryId'] as const
+  $columns = TalentPoolTagSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare tagId: string
+  @column()
+  declare talentPoolEntryId: string
+}
+
 export class UserSchema extends BaseModel {
   static $columns = ['avatarUrl', 'createdAt', 'email', 'emailVerifiedAt', 'firstName', 'id', 'lastLoginAt', 'lastName', 'organizationId', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns

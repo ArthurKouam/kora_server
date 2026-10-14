@@ -1,6 +1,7 @@
 import Application from '#models/application'
 import ApplicationStatusHistory from '#models/application_status_history'
 import CandidateDocument from '#models/candidate_document'
+import TalentPoolEntry from '#models/talent_pool_entry'
 import drive from '@adonisjs/drive/services/main'
 import Mailer from '#services/mailer'
 import { updateApplicationStatusValidator } from '#validators/application'
@@ -40,10 +41,20 @@ export default class ApplicationsController {
       formDefinition = formVersion?.definition ?? null
     }
 
+    // Le bouton « Ajouter au vivier » se désactive si le candidat y est déjà.
+    const poolEntry = await TalentPoolEntry.query()
+      .where('organization_id', organizationId)
+      .where('candidate_id', application.candidateId)
+      .select('id', 'status')
+      .first()
+
     return response.ok({
       ...application.serialize(),
       formVersion: application.formVersionId
         ? { id: application.formVersionId, definition: formDefinition }
+        : null,
+      talentPool: poolEntry
+        ? { id: poolEntry.id, status: poolEntry.status }
         : null,
     })
   }
