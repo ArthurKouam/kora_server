@@ -133,6 +133,48 @@ router
         router.get('candidates', [controllers.Candidates, 'index'])
         router.get('candidates/:id', [controllers.Candidates, 'show'])
 
+        /**
+         * Vivier de talents — capacité payante réservée aux forfaits ≥ 20 000 XAF.
+         *
+         * Le verrou de forfait (`planFeature`) passe avant le RBAC : inutile de
+         * découvrir l'existence d'une fonctionnalité qu'on ne peut pas avoir.
+         */
+        router
+          .group(() => {
+            router.get('/', [controllers.TalentPool, 'index'])
+            router.get('/tags', [controllers.TalentPool, 'tags'])
+            router.get('/:id', [controllers.TalentPool, 'show'])
+            router.get('/:id/documents/:documentId', [controllers.TalentPool, 'downloadDocument'])
+          })
+          .prefix('talent-pool')
+          .use([
+            middleware.requireOrganization(),
+            middleware.planFeature({ feature: 'talentPool', label: 'vivier de talents' }),
+            middleware.permission({ permission: ['talent_pool.read'] }),
+          ])
+
+        router
+          .group(() => {
+            router.post('/', [controllers.TalentPool, 'store'])
+            router.post('/from-application', [controllers.TalentPool, 'storeFromApplication'])
+            router.post('/tags', [controllers.TalentPool, 'createTag'])
+            router.post('/:id/restore', [controllers.TalentPool, 'restore'])
+            router.post('/:id/notes', [controllers.TalentPool, 'addNote'])
+            router.put('/:id/notes/:noteId', [controllers.TalentPool, 'updateNote'])
+            router.delete('/:id/notes/:noteId', [controllers.TalentPool, 'destroyNote'])
+            router.put('/:id/tags', [controllers.TalentPool, 'setTags'])
+            router.post('/:id/attach', [controllers.TalentPool, 'attachToJob'])
+            router.delete('/:id', [controllers.TalentPool, 'destroy'])
+            router.delete('/:id/purge', [controllers.TalentPool, 'purge'])
+          })
+          .prefix('talent-pool')
+          .use([
+            middleware.planFeature({ feature: 'talentPool', label: 'vivier de talents' }),
+            middleware.permission({ permission: ['talent_pool.manage'] }),
+            middleware.activeSubscription({ write: ['talent_pool.manage'] }),
+            middleware.requireOrganization(),
+          ])
+
         router.get('applications/:id', [controllers.Applications, 'show'])
         router.get('applications/:id/documents/:documentId', [
           controllers.Applications,

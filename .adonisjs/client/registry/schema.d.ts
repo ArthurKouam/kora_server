@@ -439,6 +439,186 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/candidates_controller').default['show']>>>
     }
   }
+  'talent_pool.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/talent-pool'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/talent_pool').talentPoolIndexValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.tags': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/talent-pool/tags'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['tags']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['tags']>>>
+    }
+  }
+  'talent_pool.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/talent-pool/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['show']>>>
+    }
+  }
+  'talent_pool.download_document': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/documents/:documentId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; documentId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['downloadDocument']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['downloadDocument']>>>
+    }
+  }
+  'talent_pool.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').createManualEntryValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').createManualEntryValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.store_from_application': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool/from-application'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').createEntryFromApplicationValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').createEntryFromApplicationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['storeFromApplication']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['storeFromApplication']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.create_tag': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool/tags'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').createTagValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').createTagValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['createTag']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['createTag']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.restore': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/restore'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['restore']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['restore']>>>
+    }
+  }
+  'talent_pool.add_note': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/notes'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').noteValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').noteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['addNote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['addNote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.update_note': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/notes/:noteId'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').noteValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; noteId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').noteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['updateNote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['updateNote']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.destroy_note': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/notes/:noteId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; noteId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['destroyNote']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['destroyNote']>>>
+    }
+  }
+  'talent_pool.set_tags': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/tags'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').setTagsValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').setTagsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['setTags']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['setTags']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.attach_to_job': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/attach'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').attachToJobValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').attachToJobValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['attachToJob']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['attachToJob']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/talent-pool/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').removeEntryValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').removeEntryValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'talent_pool.purge': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/talent-pool/:id/purge'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/talent_pool').purgeEntryValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/talent_pool').purgeEntryValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['purge']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/talent_pool_controller').default['purge']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'applications.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/applications/:id'

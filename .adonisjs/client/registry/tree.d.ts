@@ -74,6 +74,23 @@ export interface ApiDefinition {
     index: typeof routes['candidates.index']
     show: typeof routes['candidates.show']
   }
+  talentPool: {
+    index: typeof routes['talent_pool.index']
+    tags: typeof routes['talent_pool.tags']
+    show: typeof routes['talent_pool.show']
+    downloadDocument: typeof routes['talent_pool.download_document']
+    store: typeof routes['talent_pool.store']
+    storeFromApplication: typeof routes['talent_pool.store_from_application']
+    createTag: typeof routes['talent_pool.create_tag']
+    restore: typeof routes['talent_pool.restore']
+    addNote: typeof routes['talent_pool.add_note']
+    updateNote: typeof routes['talent_pool.update_note']
+    destroyNote: typeof routes['talent_pool.destroy_note']
+    setTags: typeof routes['talent_pool.set_tags']
+    attachToJob: typeof routes['talent_pool.attach_to_job']
+    destroy: typeof routes['talent_pool.destroy']
+    purge: typeof routes['talent_pool.purge']
+  }
   applications: {
     show: typeof routes['applications.show']
     downloadDocument: typeof routes['applications.download_document']

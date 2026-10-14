@@ -54,5 +54,10 @@ export const middleware = router.named({
    * pouvoir récupérer ses données.
    */
   activeSubscription: () => import('#middleware/active_subscription_middleware'),
+  /**
+   * Refuse une capacité absente du forfait courant (ex. le vivier de talents,
+   * réservé aux forfaits ≥ 20 000 XAF). La capacité est lue dans `plans.features`.
+   */
+  planFeature: () => import('#middleware/plan_feature_middleware'),
   requireOrganization: () => import('#middleware/require_organization_middleware'),
 })

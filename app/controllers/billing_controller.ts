@@ -71,6 +71,7 @@ export default class BillingController {
         members: usage.members,
       },
       limits: usage.limits,
+      capabilities: usage.capabilities,
     })
   }
 

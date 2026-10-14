@@ -14,6 +14,21 @@ export const appUrl = env.get('APP_URL')
  */
 export const http = defineConfig({
   /**
+   * L'application n'est jamais exposée en direct : elle écoute sur 127.0.0.1 et
+   * nginx est le seul point d'entrée (korahire.arthurcode.me).
+   *
+   * Sans cette option, `request.ip()` vaut toujours 127.0.0.1 et l'on perd
+   * l'adresse réelle du visiteur, ce qui met tous les rate limiters par IP de
+   * `start/limiter.ts` dans le même seau et journalise une IP locale dans
+   * `password_reset_requests`.
+   *
+   * La valeur est passée à `proxy-addr`. On ne declare que 127.0.0.1 — le
+   * proxy local — plutôt que `true` : inutile de faire confiance à toute la
+   * chaîne quand il n'y a qu'un saut.
+   */
+  trustProxy: '127.0.0.1',
+
+  /**
    * Generate a unique request id for each incoming request.
    * Useful to correlate logs and debug a request flow.
    */

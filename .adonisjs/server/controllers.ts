@@ -19,5 +19,6 @@ export const controllers = {
   Profile: () => import('#controllers/profile_controller'),
   Reports: () => import('#controllers/reports_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
+  TalentPool: () => import('#controllers/talent_pool_controller'),
   Team: () => import('#controllers/team_controller'),
 }
