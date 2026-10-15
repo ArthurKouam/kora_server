@@ -45,6 +45,20 @@ export interface ApiDefinition {
     cancel: typeof routes['information_requests.cancel']
     downloadDocument: typeof routes['information_requests.download_document']
   }
+  teamInvitations: {
+    publicShow: typeof routes['team_invitations.public_show']
+    accept: typeof routes['team_invitations.accept']
+    acceptLegacy: typeof routes['team_invitations.accept_legacy']
+    publicShowAlias: typeof routes['team_invitations.public_show_alias']
+    acceptAlias: typeof routes['team_invitations.accept_alias']
+    acceptLegacyAlias: typeof routes['team_invitations.accept_legacy_alias']
+    members: typeof routes['team_invitations.members']
+    index: typeof routes['team_invitations.index']
+    show: typeof routes['team_invitations.show']
+    store: typeof routes['team_invitations.store']
+    resend: typeof routes['team_invitations.resend']
+    cancel: typeof routes['team_invitations.cancel']
+  }
   dashboard: {
     stats: typeof routes['dashboard.stats']
     upcomingInterviews: typeof routes['dashboard.upcoming_interviews']

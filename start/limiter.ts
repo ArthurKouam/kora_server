@@ -1,5 +1,6 @@
 import limiter from '@adonisjs/limiter/services/main'
 import { hashInformationRequestToken } from '#services/information_request_tokens'
+import { hashTeamInvitationToken } from '#services/team_invitation_tokens'
 
 /**
  * Middlewares de rate limiting HTTP (clé = IP du consommateur).
@@ -55,4 +56,37 @@ export const informationRequestPostTokenThrottle = limiter.define(
       .allowRequests(5)
       .every('10 minutes')
       .usingKey(hashInformationRequestToken(String(ctx.params.token)))
+)
+
+export const teamInvitationGetIpThrottle = limiter.define('team-invitation-get-ip', (ctx) => {
+  ctx.response.header('Cache-Control', 'no-store')
+  ctx.response.header('Referrer-Policy', 'no-referrer')
+  return limiter.allowRequests(60).every('1 minute')
+})
+
+export const teamInvitationGetTokenThrottle = limiter.define('team-invitation-get-token', (ctx) => {
+  ctx.response.header('Cache-Control', 'no-store')
+  ctx.response.header('Referrer-Policy', 'no-referrer')
+  return limiter
+    .allowRequests(30)
+    .every('1 minute')
+    .usingKey(hashTeamInvitationToken(String(ctx.params.token)))
+})
+
+export const teamInvitationPostIpThrottle = limiter.define('team-invitation-post-ip', (ctx) => {
+  ctx.response.header('Cache-Control', 'no-store')
+  ctx.response.header('Referrer-Policy', 'no-referrer')
+  return limiter.allowRequests(10).every('10 minutes')
+})
+
+export const teamInvitationPostTokenThrottle = limiter.define(
+  'team-invitation-post-token',
+  (ctx) => {
+    ctx.response.header('Cache-Control', 'no-store')
+    ctx.response.header('Referrer-Policy', 'no-referrer')
+    return limiter
+      .allowRequests(5)
+      .every('10 minutes')
+      .usingKey(hashTeamInvitationToken(String(ctx.params.token)))
+  }
 )

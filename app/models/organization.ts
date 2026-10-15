@@ -5,6 +5,7 @@ import User from '#models/user'
 import Job from '#models/job'
 import Tag from '#models/tag'
 import EmailTemplate from '#models/email_template'
+import TeamInvitation from '#models/team_invitation'
 
 export default class Organization extends OrganizationSchema {
   static selfAssignPrimaryKey = false
@@ -20,4 +21,7 @@ export default class Organization extends OrganizationSchema {
 
   @hasMany(() => EmailTemplate)
   declare emailTemplates: HasMany<typeof EmailTemplate>
+
+  @hasMany(() => TeamInvitation)
+  declare teamInvitations: HasMany<typeof TeamInvitation>
 }

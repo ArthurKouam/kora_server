@@ -211,6 +211,78 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicSubmit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'team_invitations.public_show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/team-invitations/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+    }
+  }
+  'team_invitations.accept': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/team-invitations/:token/accept'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.accept_legacy': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/team-invitations/:token'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.public_show_alias': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/invitations/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+    }
+  }
+  'team_invitations.accept_alias': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/invitations/:token/accept'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.accept_legacy_alias': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/invitations/:token'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'dashboard.stats': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/stats'
@@ -269,6 +341,78 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/reports_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reports_controller').default['index']>>>
+    }
+  }
+  'team_invitations.members': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/members'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['members']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['members']>>>
+    }
+  }
+  'team_invitations.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/invitations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['index']>>>
+    }
+  }
+  'team_invitations.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/invitations/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['show']>>>
+    }
+  }
+  'team_invitations.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').createTeamInvitationValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').createTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.resend': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations/:id/resend'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['resend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['resend']>>>
+    }
+  }
+  'team_invitations.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations/:id/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['cancel']>>>
     }
   }
   'candidates.index': {

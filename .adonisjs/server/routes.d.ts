@@ -21,11 +21,23 @@ export type ScannedRoutes = {
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_submit': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_legacy': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_legacy_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.members': { paramsTuple?: []; params?: {} }
+    'team_invitations.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'team_invitations.store': { paramsTuple?: []; params?: {} }
+    'team_invitations.resend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'team_invitations.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'candidates.index': { paramsTuple?: []; params?: {} }
     'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -59,11 +71,16 @@ export type ScannedRoutes = {
     'career.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.members': { paramsTuple?: []; params?: {} }
+    'team_invitations.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'candidates.index': { paramsTuple?: []; params?: {} }
     'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -84,11 +101,16 @@ export type ScannedRoutes = {
     'career.show': { paramsTuple: [ParamValue]; params: {'slug': ParamValue} }
     'career.show_slot_request': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
     'dashboard.job_status_stats': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.members': { paramsTuple?: []; params?: {} }
+    'team_invitations.index': { paramsTuple?: []; params?: {} }
+    'team_invitations.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'candidates.index': { paramsTuple?: []; params?: {} }
     'candidates.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -113,6 +135,13 @@ export type ScannedRoutes = {
     'career.submit_slots': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'career.respond_to_invitation': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'information_requests.public_submit': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_legacy': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.accept_legacy_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'team_invitations.store': { paramsTuple?: []; params?: {} }
+    'team_invitations.resend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'team_invitations.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'information_requests.create': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'information_requests.resend': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }
     'information_requests.cancel': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'requestId': ParamValue} }

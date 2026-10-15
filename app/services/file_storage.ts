@@ -12,9 +12,8 @@ export interface StoredFileInfo {
 
 /**
  * Abstraction de stockage fichiers.
- * Dev : disque local fs (storage/uploads).
+ * Dev : disque local fs (DRIVE_DISK=fs).
  * Prod : Cloudflare R2 via le driver S3 (DRIVE_DISK=r2).
- * Le reste du code ne connaît que cette classe — jamais le disque sous-jacent.
  */
 export default class FileStorage {
   /**
