@@ -8,6 +8,7 @@ import CandidateSkill from '#models/candidate_skill'
 import Application from '#models/application'
 import CandidateSession from '#models/candidate_session'
 import CandidateVerificationToken from '#models/candidate_verification_token'
+import TalentPoolEntry from '#models/talent_pool_entry'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 
 export default class Candidate extends CandidateSchema {
@@ -37,4 +38,7 @@ export default class Candidate extends CandidateSchema {
 
   @hasMany(() => CandidateVerificationToken)
   declare candidateVerificationTokens: HasMany<typeof CandidateVerificationToken>
+
+  @hasMany(() => TalentPoolEntry)
+  declare talentPoolEntries: HasMany<typeof TalentPoolEntry>
 }

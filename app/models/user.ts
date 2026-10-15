@@ -2,11 +2,12 @@ import { UserSchema } from '#database/schema'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import { belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
 import Organization from '#models/organization'
+import TeamInvitation from '#models/team_invitation'
 
 export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   static rememberMeTokens = DbRememberMeTokensProvider.forModel(User)
@@ -15,6 +16,9 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
 
   @belongsTo(() => Organization)
   declare organization: BelongsTo<typeof Organization>
+
+  @hasMany(() => TeamInvitation, { foreignKey: 'invitedBy' })
+  declare sentTeamInvitations: HasMany<typeof TeamInvitation>
 
   get initials() {
     const [first, last] =

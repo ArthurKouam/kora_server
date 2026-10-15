@@ -13,6 +13,19 @@ import {
   exportApplicationsValidator,
 } from '#validators/billing'
 
+/**
+ * Borne haute/basse d'une journée, au format attendu par PostgreSQL.
+ *
+ * `toSQL()` est typé `string | null` par Luxon, alors que le validateur impose
+ * déjà un format ISO court : la DateTime est donc toujours valide et la valeur
+ * de repli n'est jamais atteinte.
+ */
+function sqlDayBoundary(isoDate: string, edge: 'startOf' | 'endOf'): string {
+  const date = DateTime.fromISO(isoDate)
+  const bounded = edge === 'startOf' ? date.startOf('day') : date.endOf('day')
+  return bounded.toSQL() ?? bounded.toISO() ?? isoDate
+}
+
 export default class BillingController {
   /**
    * GET /billing/plans
@@ -159,7 +172,7 @@ export default class BillingController {
         customer: {
           name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email,
           email: user.email,
-          phone: payload.phone ?? user.phone ?? null,
+          phone: payload.phone ?? organization.phone ?? null,
         },
         description: `KoraHire — forfait ${plan.name}`,
         reference: this.buildOrderReference(organization.id),
@@ -181,7 +194,7 @@ export default class BillingController {
         authorizationUrl: created.authorizationUrl,
         customerName: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email,
         customerEmail: user.email,
-        customerPhone: payload.phone ?? user.phone ?? null,
+        customerPhone: payload.phone ?? organization.phone ?? null,
         payload: created.transaction,
       })
 
@@ -322,18 +335,10 @@ export default class BillingController {
       query.where('applications.status', payload.status)
     }
     if (payload.from) {
-      query.where(
-        'applications.applied_at',
-        '>=',
-        DateTime.fromISO(payload.from).startOf('day').toSQL()
-      )
+      query.where('applications.applied_at', '>=', sqlDayBoundary(payload.from, 'startOf'))
     }
     if (payload.to) {
-      query.where(
-        'applications.applied_at',
-        '<=',
-        DateTime.fromISO(payload.to).endOf('day').toSQL()
-      )
+      query.where('applications.applied_at', '<=', sqlDayBoundary(payload.to, 'endOf'))
     }
 
     const rows = await query.orderBy('applications.applied_at', 'desc')

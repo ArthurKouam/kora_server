@@ -14,6 +14,7 @@ export const createJobValidator = vine.create({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
 
   description: vine.string().trim().minLength(1),
+  formId: vine.string().uuid().nullable().optional(),
 
   requirements: vine.string().nullable(),
   responsibilities: vine.string().nullable(),
@@ -63,6 +64,7 @@ export const updateJobValidator = vine.create({
     .optional(),
 
   description: vine.string().trim().minLength(1).nullable().optional(),
+  formId: vine.string().uuid().nullable().optional(),
 
   requirements: vine.string().nullable().optional(),
   responsibilities: vine.string().nullable().optional(),

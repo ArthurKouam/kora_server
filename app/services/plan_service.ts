@@ -65,22 +65,22 @@ export default class PlanService {
    * brouillon.
    */
   static async countActiveJobs(organizationId: string): Promise<number> {
-    const row = await db
+    const row = (await db
       .from('jobs')
       .where('organization_id', organizationId)
       .whereNotIn('status', ['closed', 'archived'])
-      .count<{ total: string }>('* as total')
-      .first()
+      .count('* as total')
+      .first()) as { total: string } | null
 
     return Number(row?.total ?? 0)
   }
 
   static async countMembers(organizationId: string): Promise<number> {
-    const row = await db
+    const row = (await db
       .from('users')
       .where('organization_id', organizationId)
-      .count<{ total: string }>('* as total')
-      .first()
+      .count('* as total')
+      .first()) as { total: string } | null
 
     return Number(row?.total ?? 0)
   }

@@ -21,6 +21,37 @@ import { randomUUID } from 'node:crypto'
 const BASE = '/api/v1/dashboard/talent-pool'
 
 /**
+ * Le client de test type une URL par l'union des réponses de toutes les routes du
+ * préfixe : sur `/talent-pool`, le corps peut être la liste paginée, le détail
+ * d'un profil, ou une erreur de forfait. Chaque variante est donc lue via un
+ * accessor explicite plutôt qu'à travers `response.body()`.
+ */
+function listBody(response: { body(): unknown }): { data: unknown[] } {
+  return response.body() as { data: unknown[] }
+}
+
+function entryBody(response: { body(): unknown }): {
+  candidate: { id: string; firstName: string | null }
+  source: string
+  status: string
+  content?: string
+} {
+  return response.body() as {
+    candidate: { id: string; firstName: string | null }
+    source: string
+    status: string
+    content?: string
+  }
+}
+
+function featureErrorBody(response: { body(): unknown }): {
+  feature: string
+  requiredPlan: { slug: string }
+} {
+  return response.body() as { feature: string; requiredPlan: { slug: string } }
+}
+
+/**
  * Ce qui coûte cher si c'est faux : un profil d'une autre organisation dans la
  * liste, un retrait qui emporte les candidatures, une capacité payante offerte
  * par un forfait qui ne la contient pas.
@@ -146,14 +177,14 @@ test.group('Vivier — accès par forfait', (group) => {
 
     response.assertStatus(402)
     assert.equal(response.body() as Record<string, any>, 'plan_feature_required')
-    assert.equal(response.body().feature, 'talentPool')
+    assert.equal(featureErrorBody(response).feature, 'talentPool')
     // Le client peut afficher quoi acheter au lieu d'un refus nu.
-    assert.equal(response.body().requiredPlan.slug, 'pro')
+    assert.equal(featureErrorBody(response).requiredPlan.slug, 'pro')
 
     await cleanup(organization)
   })
 
-  test('Pro et Enterprise ont accès au vivier', async ({ client, assert }) => {
+  test('Pro et Enterprise ont accès au vivier', async ({ client }) => {
     for (const slug of ['pro', 'enterprise']) {
       const { organization, user } = await fixtures(slug)
 
@@ -164,10 +195,7 @@ test.group('Vivier — accès par forfait', (group) => {
     }
   })
 
-  test('un abonnement Pro expiré laisse lire mais refuse d\'écrire', async ({
-    client,
-    assert,
-  }) => {
+  test("un abonnement Pro expiré laisse lire mais refuse d'écrire", async ({ client, assert }) => {
     const { organization, user } = await fixtures('pro')
     organization.planExpiresAt = DateTime.now().minus({ days: 1 })
     await organization.save()
@@ -186,7 +214,7 @@ test.group('Vivier — accès par forfait', (group) => {
 test.group('Vivier — ajout et doublons', (group) => {
   group.each.setup(fakeMail)
 
-  test('ajoute le candidat d\'une candidature', async ({ client, assert }) => {
+  test("ajoute le candidat d'une candidature", async ({ client, assert }) => {
     const { organization, user, candidate, application } = await fixtures()
 
     const response = await client
@@ -195,9 +223,9 @@ test.group('Vivier — ajout et doublons', (group) => {
       .json({ applicationId: application.id, note: 'Profil solide sur Go' })
 
     response.assertStatus(201)
-    assert.equal(response.body().candidate.id, candidate.id)
-    assert.equal(response.body().source, 'application')
-    assert.equal(response.body().status, 'active')
+    assert.equal(entryBody(response).candidate.id, candidate.id)
+    assert.equal(entryBody(response).source, 'application')
+    assert.equal(entryBody(response).status, 'active')
 
     // Le candidat est informé de la conservation de son profil.
     const notification = await db
@@ -222,8 +250,8 @@ test.group('Vivier — ajout et doublons', (group) => {
 
     const response = await client.post(BASE).loginAs(user).json(manualPayload())
     response.assertStatus(201)
-    assert.equal(response.body().candidate.firstName, 'Awa')
-    assert.equal(response.body().source, 'manual')
+    assert.equal(entryBody(response).candidate.firstName, 'Awa')
+    assert.equal(entryBody(response).source, 'manual')
 
     await cleanup(organization)
   })
@@ -258,7 +286,7 @@ test.group('Vivier — ajout et doublons', (group) => {
       .json(manualPayload({ email: candidate.email, firstName: 'Autre' }))
 
     response.assertStatus(201)
-    assert.equal(response.body().candidate.id, candidate.id)
+    assert.equal(entryBody(response).candidate.id, candidate.id)
 
     await candidate.refresh()
     assert.equal(candidate.firstName, 'Jean')
@@ -363,7 +391,7 @@ test.group('Vivier — recherche et filtres', (group) => {
 test.group('Vivier — retrait, restauration et purge', (group) => {
   group.each.setup(fakeMail)
 
-  test('retirer du vivier ne supprime pas l\'historique de candidature', async ({
+  test("retirer du vivier ne supprime pas l'historique de candidature", async ({
     client,
     assert,
   }) => {
@@ -382,7 +410,7 @@ test.group('Vivier — retrait, restauration et purge', (group) => {
       .json({ reason: 'Profil trop senior pour le poste' })
 
     removed.assertStatus(200)
-    assert.equal(removed.body().status, 'archived')
+    assert.equal(entryBody(removed).status, 'archived')
 
     // L'historique de recrutement est intact.
     const stillThere = await Application.query().where('id', application.id).first()
@@ -391,14 +419,14 @@ test.group('Vivier — retrait, restauration et purge', (group) => {
 
     // Le profil disparaît de la liste, mais reste consultable.
     const list = await client.get(BASE).loginAs(user)
-    assert.lengthOf(list.body().data, 0)
+    assert.lengthOf(listBody(list).data, 0)
 
     const archived = await client.get(`${BASE}?includeArchived=true`).loginAs(user)
     assert.lengthOf(archived.body().data, 1)
 
     const show = await client.get(`${BASE}/${entryId}`).loginAs(user)
     show.assertStatus(200)
-    assert.equal(show.body().status, 'archived')
+    assert.equal(entryBody(show).status, 'archived')
 
     await cleanup(organization)
   })
@@ -502,24 +530,19 @@ test.group('Vivier — notes et tags', (group) => {
       .loginAs(user)
       .json({ content: 'Revenu sur le marché au T3' })
     updated.assertStatus(200)
-    assert.equal(updated.body().content, 'Revenu sur le marché au T3')
+    assert.equal(entryBody(updated).content, 'Revenu sur le marché au T3')
 
     const show = await client.get(`${BASE}/${entryId}`).loginAs(user)
-    assert.lengthOf(show.body().notes, 1)
+    assert.lengthOf((show.body() as { notes: unknown[] }).notes, 1)
 
-    const removed = await client
-      .delete(`${BASE}/${entryId}/notes/${noteId}`)
-      .loginAs(user)
+    const removed = await client.delete(`${BASE}/${entryId}/notes/${noteId}`).loginAs(user)
     removed.assertStatus(204)
     assert.lengthOf(await TalentPoolNote.query().where('talent_pool_entry_id', entryId), 0)
 
     await cleanup(organization)
   })
 
-  test('remplace les tags et ignore ceux d\'une autre organisation', async ({
-    client,
-    assert,
-  }) => {
+  test("remplace les tags et ignore ceux d'une autre organisation", async ({ client, assert }) => {
     const { organization, user, application } = await fixtures()
     const rival = await otherOrganization()
 
@@ -568,7 +591,7 @@ test.group('Vivier — notes et tags', (group) => {
       .loginAs(user)
     candidateDetail.assertStatus(200)
     assert.notInclude(JSON.stringify(candidateDetail.body()), 'Salaire attendu')
-    assert.isUndefined(candidateDetail.body().notes)
+    assert.notProperty(candidateDetail.body(), 'notes')
     assert.lengthOf(await TalentPoolNote.query().where('talent_pool_entry_id', entryId), 1)
 
     await cleanup(organization)
@@ -630,7 +653,7 @@ test.group('Vivier — association à une offre', (group) => {
     await cleanup(organization)
   })
 
-  test('refuse une offre d\'une autre organisation', async ({ client, assert }) => {
+  test("refuse une offre d'une autre organisation", async ({ client }) => {
     const { organization, user, application } = await fixtures()
     const rival = await otherOrganization()
 
@@ -675,7 +698,7 @@ test.group('Vivier — isolation entre organisations', (group) => {
 
     const list = await client.get(BASE).loginAs(rival.user)
     list.assertStatus(200)
-    assert.lengthOf(list.body().data, 0)
+    assert.lengthOf(listBody(list).data, 0)
 
     const show = await client.get(`${BASE}/${entryId}`).loginAs(rival.user)
     show.assertStatus(404)
@@ -693,9 +716,8 @@ test.group('Vivier — isolation entre organisations', (group) => {
     await cleanup(rival.organization)
   })
 
-  test('le CV d\'un profil n\'est pas téléchargeable par une autre organisation', async ({
+  test("le CV d'un profil n'est pas téléchargeable par une autre organisation", async ({
     client,
-    assert,
   }) => {
     const { organization, user, candidate, application } = await fixtures()
     const rival = await otherOrganization()
@@ -744,7 +766,7 @@ test.group('Vivier — RBAC', (group) => {
 
     const list = await client.get(BASE).loginAs(interviewer)
     list.assertStatus(200)
-    assert.lengthOf(list.body().data, 1)
+    assert.lengthOf(listBody(list).data, 1)
 
     const write = await client
       .post(`${BASE}/from-application`)

@@ -45,6 +45,7 @@ export interface ApiDefinition {
     index: typeof routes['career.index']
     show: typeof routes['career.show']
     apply: typeof routes['career.apply']
+    resendOtp: typeof routes['career.resend_otp']
     verify: typeof routes['career.verify']
     showSlotRequest: typeof routes['career.show_slot_request']
     showInvitation: typeof routes['career.show_invitation']
@@ -60,6 +61,20 @@ export interface ApiDefinition {
     resend: typeof routes['information_requests.resend']
     cancel: typeof routes['information_requests.cancel']
     downloadDocument: typeof routes['information_requests.download_document']
+  }
+  teamInvitations: {
+    publicShow: typeof routes['team_invitations.public_show']
+    accept: typeof routes['team_invitations.accept']
+    acceptLegacy: typeof routes['team_invitations.accept_legacy']
+    publicShowAlias: typeof routes['team_invitations.public_show_alias']
+    acceptAlias: typeof routes['team_invitations.accept_alias']
+    acceptLegacyAlias: typeof routes['team_invitations.accept_legacy_alias']
+    members: typeof routes['team_invitations.members']
+    index: typeof routes['team_invitations.index']
+    show: typeof routes['team_invitations.show']
+    store: typeof routes['team_invitations.store']
+    resend: typeof routes['team_invitations.resend']
+    cancel: typeof routes['team_invitations.cancel']
   }
   dashboard: {
     stats: typeof routes['dashboard.stats']
@@ -116,10 +131,11 @@ export interface ApiDefinition {
     update: typeof routes['jobs.update']
     destroy: typeof routes['jobs.destroy']
   }
-  jobForms: {
-    show: typeof routes['job_forms.show']
-    saveDraft: typeof routes['job_forms.save_draft']
-    publish: typeof routes['job_forms.publish']
-    destroy: typeof routes['job_forms.destroy']
+  forms: {
+    index: typeof routes['forms.index']
+    show: typeof routes['forms.show']
+    store: typeof routes['forms.store']
+    update: typeof routes['forms.update']
+    destroy: typeof routes['forms.destroy']
   }
 }

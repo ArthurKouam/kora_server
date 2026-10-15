@@ -11,14 +11,20 @@ import OtpService from '#services/otp_service'
 import Mailer from '#services/mailer'
 import { validateAnswers } from '#services/form_answers_validator'
 import {
+  decodeApplicationConfirmationToken,
+  encodeApplicationConfirmationToken,
+} from '#services/application_confirmation_tokens'
+import {
   applyValidator,
   careerIndexValidator,
   EMPLOYMENT_TYPES,
   parseCsvFilter,
+  resendOtpValidator,
   submitSlotsValidator,
   verifyOtpValidator,
   WORKPLACE_TYPES,
 } from '#validators/career'
+import env from '#start/env'
 import InterviewTokenService from '#services/interview_token_service'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { FieldDefinition } from '#types/forms'
@@ -41,6 +47,7 @@ export default class CareerController {
         'name',
         'slug',
         'logo_url',
+        'about',
         'description',
         'website',
         'industry',
@@ -116,6 +123,7 @@ export default class CareerController {
         name: organization.name,
         slug: organization.slug,
         logoUrl: organization.logoUrl,
+        about: organization.about,
         description: organization.description,
         website: organization.website,
         industry: organization.industry,
@@ -191,7 +199,11 @@ export default class CareerController {
         salaryCurrency: job.salaryCurrency,
         closingDate: job.closingDate,
         publishedAt: job.publishedAt,
-        organization: { name: organization.name, logoUrl: organization.logoUrl },
+        organization: {
+          name: organization.name,
+          logoUrl: organization.logoUrl,
+          about: organization.about,
+        },
       },
       form,
     })
@@ -429,16 +441,23 @@ export default class CareerController {
       }
       throw error
     }
+    const confirmationToken = encodeApplicationConfirmationToken(
+      pending.id,
+      pending.expiresAt.toMillis()
+    )
+    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+
     await Mailer.sendOtp(
       payload.candidate.email,
       code,
       job.title,
       organization.name,
-      job.organizationId
+      job.organizationId,
+      confirmationUrl
     )
 
     return response.accepted({
-      pendingApplicationId: pending.id,
+      confirmationToken,
       expiresAt: pending.expiresAt,
       message:
         'Un code de vérification a été envoyé par email. La candidature sera confirmée après saisie du code.',
@@ -446,11 +465,31 @@ export default class CareerController {
   }
 
   /**
-   * POST /career/orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify
+   * Page de confirmation : le lien doit survivre à un partage d'écran et à un
+   * retour en arrière, donc le chemin est built depuis le slug public de l'offre
+   * et non depuis un id interne.
+   */
+  private applicationConfirmationUrl(job: Job, token: string): string {
+    const frontendUrl = env.get('FRONTEND_URL').replace(/\/$/, '')
+    return `${frontendUrl}/careers/${encodeURIComponent(job.slug)}/confirm?token=${encodeURIComponent(token)}`
+  }
+
+  /**
+   * POST /career/orgs/:orgSlug/jobs/:jobSlug/verify
    * Vérifie l'OTP puis crée DÉFINITIVEMENT la candidature (idempotent).
+   *
+   * L'identifiant de la candidature en attente circule sous forme de jeton
+   * signé : il porte l'id ET la date d'expiration, donc un candidat ne peut ni
+   * énumérer les candidatures en cours des autres, ni prolonger une invitation
+   * expirée en rejouant un ancien lien.
    */
   async verify({ params, request, response }: HttpContext) {
-    const { code } = await request.validateUsing(verifyOtpValidator)
+    const { token, code } = await request.validateUsing(verifyOtpValidator)
+
+    const pendingId = decodeApplicationConfirmationToken(token)
+    if (!pendingId) {
+      return response.unprocessableEntity({ error: 'Confirmation link is invalid or expired.' })
+    }
 
     const organization = await this.resolveOrganization(String(params.orgSlug))
     if (!organization) {
@@ -463,7 +502,7 @@ export default class CareerController {
     }
 
     const pending = await PendingApplication.query()
-      .where('id', String(params.pendingId))
+      .where('id', pendingId)
       .where('job_id', job.id)
       .where('status', 'pending')
       .first()
@@ -583,6 +622,88 @@ export default class CareerController {
       id: outcome.application.id,
       status: outcome.application.status,
       appliedAt: outcome.application.appliedAt,
+    })
+  }
+
+  /**
+   * POST /career/orgs/:orgSlug/jobs/:jobSlug/verify/resend
+   * Renvoie un nouveau code OTP pour une candidature en attente.
+   *
+   * Un nouveau jeton est émis à chaque renvoi, donc un lien reçu par mail
+   * devient inutilisable dès qu'un nouveau code est demandé.
+   */
+  async resendOtp({ params, request, response }: HttpContext) {
+    const { token } = await request.validateUsing(resendOtpValidator)
+
+    const pendingId = decodeApplicationConfirmationToken(token)
+    if (!pendingId) {
+      return response.unprocessableEntity({ error: 'Confirmation link is invalid or expired.' })
+    }
+
+    const organization = await this.resolveOrganization(String(params.orgSlug))
+    if (!organization) {
+      return response.notFound({ error: 'Organization not found' })
+    }
+
+    const job = await this.resolvePublishedJob(organization.id, String(params.jobSlug))
+    if (!job) {
+      return response.notFound({ error: 'Job not found' })
+    }
+
+    const pending = await PendingApplication.query()
+      .where('id', pendingId)
+      .where('job_id', job.id)
+      .first()
+
+    if (!pending) {
+      return response.notFound({ error: 'Pending application not found' })
+    }
+
+    if (pending.status === 'consumed') {
+      return response.conflict({ error: 'Cette candidature est déjà confirmée.' })
+    }
+
+    if (pending.status !== 'pending') {
+      return response.gone({ error: 'Verification expired. Please apply again.' })
+    }
+
+    if (pending.expiresAt <= DateTime.now()) {
+      pending.status = 'expired'
+      await pending.save()
+      return response.gone({ error: 'Verification expired. Please apply again.' })
+    }
+
+    let code: string
+    try {
+      code = await OtpService.request(pending.email, 'application_otp')
+    } catch (error) {
+      if ((error as Error).message === 'OTP_RATE_LIMITED') {
+        return response.tooManyRequests({
+          error: 'Trop de demandes de vérification. Réessayez dans quelques minutes.',
+        })
+      }
+      throw error
+    }
+
+    const confirmationToken = encodeApplicationConfirmationToken(
+      pending.id,
+      pending.expiresAt.toMillis()
+    )
+    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+
+    await Mailer.sendOtp(
+      pending.email,
+      code,
+      job.title,
+      organization.name,
+      job.organizationId,
+      confirmationUrl
+    )
+
+    return response.accepted({
+      confirmationToken,
+      expiresAt: pending.expiresAt,
+      message: 'Un nouveau code de vérification a été envoyé par email.',
     })
   }
 

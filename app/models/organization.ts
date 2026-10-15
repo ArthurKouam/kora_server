@@ -7,6 +7,7 @@ import Tag from '#models/tag'
 import EmailTemplate from '#models/email_template'
 import Plan from '#models/plan'
 import Payment from '#models/payment'
+import TeamInvitation from '#models/team_invitation'
 
 export default class Organization extends OrganizationSchema {
   static selfAssignPrimaryKey = false
@@ -28,4 +29,7 @@ export default class Organization extends OrganizationSchema {
 
   @hasMany(() => Payment)
   declare payments: HasMany<typeof Payment>
+
+  @hasMany(() => TeamInvitation)
+  declare teamInvitations: HasMany<typeof TeamInvitation>
 }

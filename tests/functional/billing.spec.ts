@@ -17,6 +17,36 @@ import { DateTime } from 'luxon'
  * payer, un webhook forgé, un montant falsifié, un quota contourné.
  */
 
+/**
+ * `Array.find` renvoie `T | undefined` : sans garde explicite, la disparition
+ * d'un slug de plan produirait une erreur `undefined` difficile à interpréter.
+ */
+function mustFind<T>(items: T[], predicate: (item: T) => boolean, label: string): T {
+  const found = items.find(predicate)
+  if (found === undefined) {
+    throw new Error(`Élément introuvable : ${label}`)
+  }
+  return found
+}
+
+/**
+ * Le client de test type une URL par l'union des réponses de toutes les routes
+ * qui partagent son chemin : sur `/api/v1/dashboard/jobs`, le corps est donc
+ * `Job | ModelPaginatorContract<Job>`. Après un statut d'erreur, on lit le
+ * corps d'erreur explicitement plutôt que de laisser l'union treacherous.
+ */
+function errorBody(response: { body(): unknown }): {
+  error: string
+  code?: string
+  billingUrl?: string
+} {
+  const body = response.body()
+  if (body === null || typeof body !== 'object' || !('error' in body)) {
+    throw new Error(`Réponse sans champ "error" : ${JSON.stringify(body)}`)
+  }
+  return body as { error: string; code?: string; billingUrl?: string }
+}
+
 async function orgWithPlan(slug: string) {
   const suffix = randomUUID()
   const plan = await Plan.query().where('slug', slug).firstOrFail()
@@ -101,18 +131,18 @@ test.group('Billing — plans et visibilité publique', () => {
     const body = response.body()
     assert.lengthOf(body, 3)
 
-    const plus = body.find((p: any) => p.slug === 'plus')
+    const plus = mustFind(body, (p: any) => p.slug === 'plus', 'plan "plus"')
     assert.equal(plus.priceXaf, 8000)
     assert.equal(plus.maxActiveJobs, 5)
     assert.equal(plus.maxMembers, 3)
     assert.isTrue(plus.isPurchasable)
 
-    const pro = body.find((p: any) => p.slug === 'pro')
+    const pro = mustFind(body, (p: any) => p.slug === 'pro', 'plan "pro"')
     assert.equal(pro.priceXaf, 20000)
     assert.equal(pro.maxActiveJobs, 20)
     assert.equal(pro.maxMembers, 10)
 
-    const enterprise = body.find((p: any) => p.slug === 'enterprise')
+    const enterprise = mustFind(body, (p: any) => p.slug === 'enterprise', 'plan "enterprise"')
     assert.isNull(enterprise.priceXaf)
     assert.isFalse(enterprise.isPublic)
     // Non achetable : le bouton doit proposer un contact, pas un paiement.
@@ -123,14 +153,14 @@ test.group('Billing — plans et visibilité publique', () => {
     const response = await client.get('/api/v1/billing/plans')
     response.assertStatus(200)
 
-    const plus = response.body().find((p: any) => p.slug === 'plus')
+    const plus = mustFind(response.body(), (p: any) => p.slug === 'plus', 'plan "plus"')
     assert.isFalse(plus.features.cvParsing.defined)
     assert.isTrue(plus.features.customForms.defined)
   })
 })
 
 test.group('Billing — quotas', () => {
-  test('une organisation sans forfait peut créer une offre', async ({ client, assert }) => {
+  test('une organisation sans forfait peut créer une offre', async ({ client }) => {
     const { organization, owner } = await orgWithPlan('plus')
     const suffix = randomUUID()
 
@@ -160,13 +190,13 @@ test.group('Billing — quotas', () => {
       .json(jobPayload(randomUUID(), 'Offre 6'))
 
     response.assertStatus(402)
-    assert.match(response.body().error, /limité à 5 offres/)
-    assert.equal(response.body().code, 'job_quota_reached')
+    assert.match(errorBody(response).error, /limité à 5 offres/)
+    assert.equal(errorBody(response).code, 'job_quota_reached')
 
     await cleanup(organization)
   })
 
-  test('Pro autorise 20 offres, le quota ne bloque pas à 6', async ({ client, assert }) => {
+  test('Pro autorise 20 offres, le quota ne bloque pas à 6', async ({ client }) => {
     const { organization, owner } = await orgWithPlan('pro')
 
     for (let i = 0; i < 6; i++) {
@@ -180,7 +210,7 @@ test.group('Billing — quotas', () => {
     await cleanup(organization)
   })
 
-  test('une offre clôturée libère un quota', async ({ client, assert }) => {
+  test('une offre clôturée libère un quota', async ({ client }) => {
     const { organization, owner } = await orgWithPlan('plus')
 
     const created: string[] = []
@@ -190,7 +220,7 @@ test.group('Billing — quotas', () => {
         .loginAs(owner)
         .json(jobPayload(randomUUID(), `Offre ${i}`))
       response.assertStatus(201)
-      created.push(response.body().id)
+      created.push((response.body() as { id: string }).id)
     }
 
     await db.query().from('jobs').where('id', created[0]).update({ status: 'closed' })
@@ -237,14 +267,14 @@ test.group('Billing — expiration en lecture seule', () => {
       .json(jobPayload(randomUUID()))
 
     response.assertStatus(402)
-    assert.equal(response.body().code, 'subscription_expired')
-    assert.match(response.body().error, /a expiré/)
-    assert.equal(response.body().billingUrl, '/settings/billing')
+    assert.equal(errorBody(response).code, 'subscription_expired')
+    assert.match(errorBody(response).error, /a expiré/)
+    assert.equal(errorBody(response).billingUrl, '/settings/billing')
 
     await cleanup(organization)
   })
 
-  test('la lecture reste possible après expiration', async ({ client, assert }) => {
+  test('la lecture reste possible après expiration', async ({ client }) => {
     const { organization, owner } = await orgWithPlan('plus')
     organization.planExpiresAt = DateTime.now().minus({ days: 1 })
     await organization.save()
@@ -318,12 +348,12 @@ test.group('Billing — sécurité du paiement', () => {
       .json({ planId: enterprise.id })
 
     response.assertStatus(403)
-    assert.match(response.body().error, /devis/)
+    assert.match(errorBody(response).error, /devis/)
 
     await cleanup(organization)
   })
 
-  test('checkout refuse un planId inconnu', async ({ client, assert }) => {
+  test('checkout refuse un planId inconnu', async ({ client }) => {
     const { organization, owner } = await orgWithPlan('plus')
 
     const response = await client
@@ -370,7 +400,10 @@ test.group('Billing — sécurité du paiement', () => {
     const response = await client
       .post('/api/v1/billing/confirm')
       .loginAs(owner)
-      .json({ reference: payment.notchpayReference, status: 'complete', amount: 1 })
+      // Seul `reference` est accepté par le contrat : la confiance ne repose pas sur
+      // des champs envoyés par le client, mais sur l'appel à NotchPay via
+      // syncPayment. Un montant falsifié n'a donc rien à faire dans cette requête.
+      .json({ reference: payment.notchpayReference ?? '' })
 
     // L'appel réseau à NotchPay échoue : aucun plan ne doit s'activer.
     organization = (await Organization.find(organization.id))!
@@ -380,7 +413,7 @@ test.group('Billing — sécurité du paiement', () => {
     await cleanup(organization)
   })
 
-  test('checkout exige une authentification', async ({ client, assert }) => {
+  test('checkout exige une authentification', async ({ client }) => {
     const { organization } = await orgWithPlan('plus')
 
     const response = await client.post('/api/v1/billing/checkout').json({ planId: randomUUID() })
@@ -392,7 +425,7 @@ test.group('Billing — sécurité du paiement', () => {
 
 test.group('Billing — webhooks', () => {
   // Clé lue depuis la config de l'app : c'est elle que le contrôleur compare.
-  const hashKey = notchpayConfig.hashKey
+  const hashKey = notchpayConfig.hashKey ?? ''
 
   test('une signature valide est acceptée, une forgée refusée', ({ assert }) => {
     const body = JSON.stringify({ id: 'evt_1', type: 'payment.complete' })
@@ -412,7 +445,7 @@ test.group('Billing — webhooks', () => {
     assert.isFalse(NotchPayService.verifyWebhookSignature(tampered, signature))
   })
 
-  test('le webhook refuse une signature invalide avec 400', async ({ client, assert }) => {
+  test('le webhook refuse une signature invalide avec 400', async ({ client }) => {
     const response = await client
       .post('/api/v1/billing/webhooks/notchpay')
       .header('x-notch-signature', 'signature-bidon')
@@ -436,7 +469,7 @@ test.group('Billing — webhooks', () => {
       .json(JSON.parse(body))
 
     first.assertStatus(200)
-    assert.isUndefined(first.body().duplicate)
+    assert.isUndefined((first.body() as { duplicate?: boolean }).duplicate)
 
     const second = await client
       .post('/api/v1/billing/webhooks/notchpay')
@@ -444,7 +477,7 @@ test.group('Billing — webhooks', () => {
       .json(JSON.parse(body))
 
     second.assertStatus(200)
-    assert.isTrue(second.body().duplicate)
+    assert.isTrue((second.body() as { duplicate?: boolean }).duplicate)
 
     const rows = await db.query().from('webhook_events').where('event_id', eventId)
     assert.lengthOf(rows, 1)

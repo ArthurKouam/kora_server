@@ -11,7 +11,7 @@
 function escapeCell(value: unknown): string {
   if (value === null || value === undefined) return ''
 
-  let text = value instanceof Date ? value.toISO() : String(value)
+  let text = value instanceof Date ? value.toISOString() : String(value)
   text = text.replace(/\r?\n/g, ' ')
 
   // Un champ commençant par =, +, -, @ ou suivi de tab est interprété comme

@@ -17,9 +17,14 @@ import {
   informationRequestPostTokenThrottle,
   forgotPasswordThrottle,
   loginThrottle,
+  otpResendThrottle,
   otpVerifyThrottle,
   passwordResetThrottle,
   signupThrottle,
+  teamInvitationGetIpThrottle,
+  teamInvitationGetTokenThrottle,
+  teamInvitationPostIpThrottle,
+  teamInvitationPostTokenThrottle,
 } from '#start/limiter'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
@@ -104,11 +109,11 @@ router
           .post('orgs/:orgSlug/jobs/:jobSlug/apply', [controllers.Career, 'apply'])
           .use([careerApplyThrottle])
         router
-          .post('orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify', [
-            controllers.Career,
-            'verify',
-          ])
+          .post('orgs/:orgSlug/jobs/:jobSlug/verify', [controllers.Career, 'verify'])
           .use([otpVerifyThrottle])
+        router
+          .post('orgs/:orgSlug/jobs/:jobSlug/verify/resend', [controllers.Career, 'resendOtp'])
+          .use([otpResendThrottle])
         router.get('interview-slots/:token', [controllers.Career, 'showSlotRequest'])
         router.get('interview-invitations/:token', [controllers.Career, 'showInvitation'])
         router.post('interview-slots/:token', [controllers.Career, 'submitSlots'])
@@ -119,6 +124,29 @@ router
         router
           .post('information-requests/:token', [InformationRequestsController, 'publicSubmit'])
           .use([informationRequestPostIpThrottle, informationRequestPostTokenThrottle])
+        router
+          .get('team-invitations/:token', [controllers.TeamInvitations, 'publicShow'])
+          .use([teamInvitationGetIpThrottle, teamInvitationGetTokenThrottle])
+        router
+          .post('team-invitations/:token/accept', [controllers.TeamInvitations, 'publicAccept'])
+          .as('team_invitations.accept')
+          .use([teamInvitationPostIpThrottle, teamInvitationPostTokenThrottle])
+        router
+          .post('team-invitations/:token', [controllers.TeamInvitations, 'publicAccept'])
+          .as('team_invitations.accept_legacy')
+          .use([teamInvitationPostIpThrottle, teamInvitationPostTokenThrottle])
+        router
+          .get('invitations/:token', [controllers.TeamInvitations, 'publicShow'])
+          .as('team_invitations.public_show_alias')
+          .use([teamInvitationGetIpThrottle, teamInvitationGetTokenThrottle])
+        router
+          .post('invitations/:token/accept', [controllers.TeamInvitations, 'publicAccept'])
+          .as('team_invitations.accept_alias')
+          .use([teamInvitationPostIpThrottle, teamInvitationPostTokenThrottle])
+        router
+          .post('invitations/:token', [controllers.TeamInvitations, 'publicAccept'])
+          .as('team_invitations.accept_legacy_alias')
+          .use([teamInvitationPostIpThrottle, teamInvitationPostTokenThrottle])
       })
       .prefix('career')
 
@@ -129,6 +157,23 @@ router
         router.get('application-status-stats', [controllers.Dashboard, 'applicationStatusStats'])
         router.get('job-status-stats', [controllers.Dashboard, 'jobStatusStats'])
         router.get('reports', [controllers.Reports, 'index'])
+
+        router
+          .group(() => {
+            router.get('members', [controllers.TeamInvitations, 'members'])
+            router.get('invitations', [controllers.TeamInvitations, 'index'])
+            router.get('invitations/:id', [controllers.TeamInvitations, 'show'])
+            router
+              .post('invitations', [controllers.TeamInvitations, 'store'])
+              .use(middleware.permission({ permission: ['team.invite'] }))
+            router
+              .post('invitations/:id/resend', [controllers.TeamInvitations, 'resend'])
+              .use(middleware.permission({ permission: ['team.invite'] }))
+            router
+              .post('invitations/:id/cancel', [controllers.TeamInvitations, 'cancel'])
+              .use(middleware.permission({ permission: ['team.invite'] }))
+          })
+          .prefix('team')
 
         router.get('candidates', [controllers.Candidates, 'index'])
         router.get('candidates/:id', [controllers.Candidates, 'show'])
@@ -232,17 +277,6 @@ router
             middleware.permission({ permission: ['interviews.update'] }),
             middleware.activeSubscription({ write: ['interviews.update'] }),
           ])
-
-        /**
-         * Équipe — l'invitation est couverte par le quota `max_members` du
-         * plan, vérifié dans le contrôleur avant l'envoi de l'email.
-         */
-        router
-          .group(() => {
-            router.get('team', [controllers.Team, 'index'])
-            router.post('team/invitations', [controllers.Team, 'invite'])
-          })
-          .as('team')
 
         router
           .group(() => {

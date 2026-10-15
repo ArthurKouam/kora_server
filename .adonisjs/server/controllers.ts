@@ -20,5 +20,5 @@ export const controllers = {
   Reports: () => import('#controllers/reports_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
   TalentPool: () => import('#controllers/talent_pool_controller'),
-  Team: () => import('#controllers/team_controller'),
+  TeamInvitations: () => import('#controllers/team_invitations_controller'),
 }

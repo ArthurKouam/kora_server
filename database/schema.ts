@@ -627,8 +627,10 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class OrganizationSchema extends BaseModel {
-  static $columns = ['address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'planExpiresAt', 'planId', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
+  static $columns = ['about', 'address', 'city', 'country', 'createdAt', 'description', 'email', 'id', 'industry', 'logoUrl', 'name', 'phone', 'planExpiresAt', 'planId', 'size', 'slug', 'timezone', 'updatedAt', 'website'] as const
   $columns = OrganizationSchema.$columns
+  @column()
+  declare about: string | null
   @column()
   declare address: string | null
   @column()
@@ -912,6 +914,41 @@ export class TalentPoolTagSchema extends BaseModel {
   declare tagId: string
   @column()
   declare talentPoolEntryId: string
+}
+
+export class TeamInvitationSchema extends BaseModel {
+  static $columns = ['acceptedAt', 'cancelledAt', 'createdAt', 'deliveryError', 'deliveryStatus', 'email', 'expiresAt', 'id', 'invitedBy', 'organizationId', 'role', 'sentAt', 'status', 'tokenHash', 'updatedAt'] as const
+  $columns = TeamInvitationSchema.$columns
+  @column.dateTime()
+  declare acceptedAt: DateTime | null
+  @column.dateTime()
+  declare cancelledAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare deliveryError: string | null
+  @column()
+  declare deliveryStatus: string
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare invitedBy: string
+  @column()
+  declare organizationId: string
+  @column()
+  declare role: string
+  @column.dateTime()
+  declare sentAt: DateTime | null
+  @column()
+  declare status: string
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class UserSchema extends BaseModel {

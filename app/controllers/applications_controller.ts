@@ -53,9 +53,7 @@ export default class ApplicationsController {
       formVersion: application.formVersionId
         ? { id: application.formVersionId, definition: formDefinition }
         : null,
-      talentPool: poolEntry
-        ? { id: poolEntry.id, status: poolEntry.status }
-        : null,
+      talentPool: poolEntry ? { id: poolEntry.id, status: poolEntry.status } : null,
     })
   }
 

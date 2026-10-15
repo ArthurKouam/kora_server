@@ -4,7 +4,7 @@ import { defineConfig, services } from '@adonisjs/drive'
 
 /**
  * Dev : disque local (storage/uploads, servi sous /uploads).
- * Prod : Cloudflare R2 via l'API S3 — activer avec DRIVE_DISK=r2.
+ * Prod : Cloudflare R2 via l'API S3, activer avec DRIVE_DISK=r2.
  */
 const driveConfig = defineConfig({
   default: env.get('DRIVE_DISK', 'fs') as 'fs' | 'r2',

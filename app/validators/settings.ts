@@ -16,6 +16,7 @@ export const updatePasswordValidator = vine.create({
 
 export const updateOrganizationValidator = vine.create({
   name: vine.string().trim().minLength(2).maxLength(200),
+  about: vine.string().trim().maxLength(3000).nullable().optional(),
   website: vine.string().trim().maxLength(255).nullable().optional(),
   industry: vine.string().trim().maxLength(100).nullable().optional(),
   size: vine.string().trim().maxLength(50).nullable().optional(),
