@@ -18,8 +18,7 @@ const MAX_REQUESTS_PER_HOUR = 5
 export type PasswordResetFailure = 'invalid' | 'expired' | 'used' | 'rate_limited'
 
 export type PasswordResetLookup =
-  | { ok: true; token: PasswordResetToken }
-  | { ok: false; reason: PasswordResetFailure }
+  { ok: true; token: PasswordResetToken } | { ok: false; reason: PasswordResetFailure }
 
 export function generatePasswordResetToken(): string {
   return randomBytes(32).toString('base64url')

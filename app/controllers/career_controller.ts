@@ -445,7 +445,7 @@ export default class CareerController {
       pending.id,
       pending.expiresAt.toMillis()
     )
-    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+    const confirmationUrl = this.applicationConfirmationUrl(organization, job, confirmationToken)
 
     await Mailer.sendOtp(
       payload.candidate.email,
@@ -466,12 +466,16 @@ export default class CareerController {
 
   /**
    * Page de confirmation : le lien doit survivre à un partage d'écran et à un
-   * retour en arrière, donc le chemin est built depuis le slug public de l'offre
-   * et non depuis un id interne.
+   * retour en arrière, donc le chemin est construit depuis les slugs publics de
+   * l'organisation et de l'offre, jamais depuis un identifiant interne.
+   *
+   * Le chemin suit `/careers/{org}/{jobSlug}/confirm` côté frontend.
    */
-  private applicationConfirmationUrl(job: Job, token: string): string {
+  private applicationConfirmationUrl(organization: Organization, job: Job, token: string): string {
     const frontendUrl = env.get('FRONTEND_URL').replace(/\/$/, '')
-    return `${frontendUrl}/careers/${encodeURIComponent(job.slug)}/confirm?token=${encodeURIComponent(token)}`
+    const org = encodeURIComponent(organization.slug)
+    const jobSlug = encodeURIComponent(job.slug)
+    return `${frontendUrl}/careers/${org}/${jobSlug}/confirm?token=${encodeURIComponent(token)}`
   }
 
   /**
@@ -689,7 +693,7 @@ export default class CareerController {
       pending.id,
       pending.expiresAt.toMillis()
     )
-    const confirmationUrl = this.applicationConfirmationUrl(job, confirmationToken)
+    const confirmationUrl = this.applicationConfirmationUrl(organization, job, confirmationToken)
 
     await Mailer.sendOtp(
       pending.email,
