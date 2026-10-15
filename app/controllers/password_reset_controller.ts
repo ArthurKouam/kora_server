@@ -50,7 +50,8 @@ export default class PasswordResetController {
     }
 
     return response.accepted({
-      message: 'Si un compte existe avec cette adresse, un email de réinitialisation vient d’être envoyé.',
+      message:
+        'Si un compte existe avec cette adresse, un email de réinitialisation vient d’être envoyé.',
     })
   }
 

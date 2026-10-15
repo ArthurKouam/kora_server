@@ -287,6 +287,9 @@ router
                 middleware.permission({ permission: ['jobs.create'] }),
                 middleware.activeSubscription({ write: ['jobs.create'] }),
               ])
+            router
+              .get('/form-sources', [controllers.JobForms, 'sources'])
+              .use(middleware.permission({ permission: ['forms.update'] }))
             router.get('/:id/form', [controllers.JobForms, 'show'])
             router
               .put('/:id/form/draft', [controllers.JobForms, 'saveDraft'])
@@ -299,6 +302,12 @@ router
               .use([
                 middleware.permission({ permission: ['forms.publish'] }),
                 middleware.activeSubscription({ write: ['forms.publish'] }),
+              ])
+            router
+              .post('/:id/form/draft/duplicate', [controllers.JobForms, 'duplicateDraft'])
+              .use([
+                middleware.permission({ permission: ['forms.update'] }),
+                middleware.activeSubscription({ write: ['forms.update'] }),
               ])
             router
               .delete('/:id/form/draft', [controllers.JobForms, 'destroy'])

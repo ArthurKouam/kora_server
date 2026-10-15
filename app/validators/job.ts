@@ -14,7 +14,6 @@ export const createJobValidator = vine.create({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
 
   description: vine.string().trim().minLength(1),
-  formId: vine.string().uuid().nullable().optional(),
 
   requirements: vine.string().nullable(),
   responsibilities: vine.string().nullable(),
@@ -64,7 +63,6 @@ export const updateJobValidator = vine.create({
     .optional(),
 
   description: vine.string().trim().minLength(1).nullable().optional(),
-  formId: vine.string().uuid().nullable().optional(),
 
   requirements: vine.string().nullable().optional(),
   responsibilities: vine.string().nullable().optional(),
@@ -94,4 +92,15 @@ export const updateJobValidator = vine.create({
   status: vine.enum(['draft', 'published', 'paused', 'closed', 'archived']).nullable().optional(),
 
   closingDate: vine.date().nullable().optional(),
+})
+
+/**
+ * Copie d'un formulaire depuis un autre poste comme brouillon du poste cible.
+ *
+ * `sourceVersionId` est optionnel : par défaut on prend la version publiée du
+ * poste source, sinon sa plus récente version.
+ */
+export const duplicateJobFormValidator = vine.create({
+  sourceJobId: vine.string().uuid(),
+  sourceVersionId: vine.string().uuid().optional(),
 })
