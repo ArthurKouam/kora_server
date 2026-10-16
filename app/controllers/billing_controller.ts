@@ -1,11 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
+import logger from '@adonisjs/core/services/logger'
 import Organization from '#models/organization'
 import Payment from '#models/payment'
 import Plan from '#models/plan'
 import PlanService from '#services/plan_service'
-import NotchPayService, { NotchPayError } from '#services/notchpay_service'
+import NotchPayService, { NotchPayError, isNotchPayPaymentStatus } from '#services/notchpay_service'
 import { buildCsv, UTF8_BOM } from '#services/csv'
 import {
   checkoutValidator,
@@ -146,26 +147,78 @@ export default class BillingController {
 
     const user = auth.use('web').getUserOrFail()
 
-    // Une seule transaction en cours à la fois : évite d'accumuler des
-    // paiements partiels si le client reclique sur « payer ».
-    const existing = await Payment.query()
+    /**
+     * Une seule transaction en cours à la fois : évite d'accumuler des
+     * paiements partiels si le client reclique sur « payer ».
+     *
+     * Le filtre est volontairement strict, car réutiliser n'importe quel
+     * paiement en attente bloquait définitivement les suivants :
+     * - même forfait, sinon on renvoie le client vers un autre montant ;
+     * - moins de 3 h, durée de vie d'une transaction chez NotchPay : au-delà,
+     *   le lien est mort et le client ne pourrait plus payer ;
+     * - toujours `pending` après resynchronisation, sinon on renvoie vers une
+     *   transaction abandonnée.
+     */
+    const reusable = await Payment.query()
       .where('organization_id', organization.id)
+      .where('plan_id', plan.id)
       .whereIn('status', ['pending', 'processing'])
+      .where('created_at', '>', DateTime.now().minus({ hours: 3 }).toSQL()!)
       .orderBy('created_at', 'desc')
       .first()
 
-    if (existing) {
-      return response.ok({
-        reference: existing.notchpayReference,
-        authorizationUrl: existing.authorizationUrl,
-        amount: existing.amount,
-        currency: existing.currency,
-        status: existing.status,
-        reused: true,
-      })
+    if (reusable?.authorizationUrl) {
+      /**
+       * Le statut en base peut être en retard (webhook non reçu ou non
+       * configuré) : on redemande l'état réel avant de renvoyer le lien.
+       * NotchPay injoignable = on réutilise le lien existant, une création
+       * échouerait de la même façon.
+       */
+      try {
+        await this.syncPayment(reusable)
+      } catch (error) {
+        logger.warn(
+          { err: error, paymentId: reusable.id },
+          'Resynchronisation du paiement impossible, réutilisation du lien existant'
+        )
+      }
+
+      /**
+       * Déjà payé : le forfait vient d'être activé par la resynchronisation.
+       * Renvoyer l'URL de la page NotchPay ferait payer une seconde fois.
+       */
+      if (reusable.status === 'complete') {
+        return response.ok({
+          reference: reusable.notchpayReference,
+          authorizationUrl: null,
+          amount: reusable.amount,
+          currency: reusable.currency,
+          status: reusable.status,
+          reused: true,
+        })
+      }
+
+      if (reusable.status === 'pending' || reusable.status === 'processing') {
+        return response.ok({
+          reference: reusable.notchpayReference,
+          authorizationUrl: reusable.authorizationUrl,
+          amount: reusable.amount,
+          currency: reusable.currency,
+          status: reusable.status,
+          reused: true,
+        })
+      }
     }
 
     try {
+      /**
+       * Référence générée une seule fois : c'est celle qu'on envoie à NotchPay
+       * et qui revient dans le callback (`trxref`). L'ancien code en générait
+       * une seconde pour la colonne `order_reference`, donc la valeur stockée
+       * ne correspondait à rien de ce que NotchPay pouvait renvoyer.
+       */
+      const orderReference = this.buildOrderReference(organization.id)
+
       const created = await NotchPayService.createPayment({
         amount: plan.priceXaf,
         currency: 'XAF',
@@ -175,7 +228,7 @@ export default class BillingController {
           phone: payload.phone ?? organization.phone ?? null,
         },
         description: `KoraHire — forfait ${plan.name}`,
-        reference: this.buildOrderReference(organization.id),
+        reference: orderReference,
         metadata: {
           organizationId: organization.id,
           planId: plan.id,
@@ -186,11 +239,20 @@ export default class BillingController {
       const payment = await Payment.create({
         organizationId: organization.id,
         planId: plan.id,
-        notchpayReference: created.transaction.reference,
-        orderReference: created.transaction.trxref ?? this.buildOrderReference(organization.id),
+        /**
+         * `id` est l'identifiant NotchPay de la transaction, `orderReference`
+         * le nôtre : les deux sont conservés, car le retour du client peut
+         * porter l'un ou l'autre (cf. `Payment.findByAnyReference`).
+         */
+        notchpayReference: created.transaction.id ?? created.transaction.reference,
+        orderReference,
         amount: plan.priceXaf,
         currency: 'XAF',
-        status: created.transaction.status,
+        // Un statut hors contrainte ferait échouer l'insertion : on retombe sur
+        // `pending`, la resynchronisation corrigera le tir.
+        status: isNotchPayPaymentStatus(created.transaction.status)
+          ? created.transaction.status
+          : 'pending',
         authorizationUrl: created.authorizationUrl,
         customerName: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email,
         customerEmail: user.email,
@@ -207,12 +269,40 @@ export default class BillingController {
         reused: false,
       })
     } catch (error) {
-      if (error instanceof NotchPayError) {
-        return response.unprocessableEntity({
-          error: 'Le paiement n’a pas pu être initialisé. Réessayez dans un instant.',
+      if (!(error instanceof NotchPayError)) throw error
+
+      /**
+       * Tracé systématiquement : sans cela, une clé absente ou refusée se
+       * présentait au client comme un simple « réessayez » et personne ne
+       * pouvait voir la cause côté serveur.
+       */
+      logger.error(
+        { statusCode: error.statusCode, code: error.code, body: error.body },
+        'Création du paiement NotchPay impossible'
+      )
+
+      // Erreur de notre côté : un 422 laisserait croire à une saisie fautive.
+      if (
+        error.code === 'not_configured' ||
+        error.statusCode === 401 ||
+        error.statusCode === 403
+      ) {
+        return response.badGateway({
+          error: 'Le paiement en ligne est indisponible. Contactez le support.',
+          code: 'payment_provider_misconfigured',
         })
       }
-      throw error
+
+      if (error.code === 'unreachable' || error.statusCode >= 500) {
+        return response.serviceUnavailable({
+          error:
+            'Le service de paiement est momentanément indisponible. Réessayez dans un instant.',
+        })
+      }
+
+      return response.unprocessableEntity({
+        error: 'Le paiement n’a pas pu être initialisé. Vérifiez le numéro saisi et réessayez.',
+      })
     }
   }
 
@@ -231,11 +321,15 @@ export default class BillingController {
     }
     const payload = await request.validateUsing(confirmValidator)
 
-    const payment = await Payment.query()
-      .where('organization_id', organization.id)
-      .where('notchpay_reference', payload.reference)
-      .preload('plan')
-      .first()
+    /**
+     * `reference` et `trxref` peuvent désigner la même transaction sous deux
+     * identifiants différents : on cherche sur les deux, sans org pour la
+     * route de retour (elle est déjà scopée par le tenant de l'utilisateur).
+     */
+    const payment = await Payment.findByAnyReference(
+      [payload.reference, payload.trxref],
+      organization.id
+    )
 
     if (!payment) {
       return response.notFound({ error: 'Paiement introuvable' })
@@ -251,16 +345,22 @@ export default class BillingController {
       })
     }
 
-    if (!payment.plan) {
+    if (!payment.planId) {
       return response.unprocessableEntity({ error: 'Plan introuvable pour ce paiement' })
     }
 
-    await PlanService.activate(organization, payment.plan)
+    const plan = await Plan.find(payment.planId)
+
+    if (!plan) {
+      return response.unprocessableEntity({ error: 'Plan introuvable pour ce paiement' })
+    }
+
+    await PlanService.activate(organization, plan)
 
     return response.ok({
       status,
       activated: true,
-      plan: { id: payment.plan.id, name: payment.plan.name, slug: payment.plan.slug },
+      plan: { id: plan.id, name: plan.name, slug: plan.slug },
       expiresAt: organization.planExpiresAt?.toISO() ?? null,
     })
   }
@@ -276,10 +376,7 @@ export default class BillingController {
       return response.forbidden({ error: 'User does not belong to any organization' })
     }
 
-    const payment = await Payment.query()
-      .where('organization_id', organization.id)
-      .where('notchpay_reference', String(params.reference))
-      .first()
+    const payment = await Payment.findByAnyReference([String(params.reference)], organization.id)
 
     if (!payment) {
       return response.notFound({ error: 'Paiement introuvable' })
@@ -379,24 +476,27 @@ export default class BillingController {
   }
 
   /**
-   * Recale une transaction sur l'état réel côté NotchPay et l'active si
-   * elle vient d'être payée. Idempotent : appelé aussi bien par `confirm`
-   * que par le webhook.
+   * Recale une transaction sur l'état réel côté NotchPay et active le forfait
+   * s'il vient d'être payé. Idempotent : appelé par `confirm`, `showPayment`,
+   * `checkout` et le webhook.
    */
   private async syncPayment(payment: Payment): Promise<string> {
-    const transaction = await NotchPayService.retrievePayment(payment.notchpayReference!)
+    if (!payment.notchpayReference) {
+      throw new NotchPayError('Référence NotchPay absente pour ce paiement.', 500)
+    }
+
+    const transaction = await NotchPayService.retrievePayment(payment.notchpayReference)
     const previousStatus = payment.status
 
-    payment.status = transaction.status
+    // Statut et `paid_at` (dates ISO 8601) portés par le modèle, partagés avec
+    // le webhook : une seule conversion, un seul filtre de statuts.
+    const status = payment.applyProviderTransaction(transaction)
     payment.payload = transaction
-    payment.paidAt =
-      transaction.status === 'complete'
-        ? DateTime.fromSQL(transaction.completed_at ?? DateTime.now().toSQL())
-        : payment.paidAt
     await payment.save()
 
-    if (transaction.status === 'complete' && previousStatus !== 'complete') {
+    if (status === 'complete' && previousStatus !== 'complete') {
       const plan = await Plan.find(payment.planId)
+
       if (plan) {
         const organization = await Organization.find(payment.organizationId)
         if (organization) {
@@ -405,7 +505,7 @@ export default class BillingController {
       }
     }
 
-    return transaction.status
+    return status
   }
 
   /** Référence interne non devinable, liée à l'organisation. */

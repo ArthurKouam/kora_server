@@ -28,6 +28,24 @@ export const notchpayConfig = {
   /** Devise unique : les plans sont tarifés en XAF (FCFA). */
   currency: 'XAF',
 
+  /**
+   * Créer un paiement mobilise un utilisateur dont l'opérateur Mobile Money
+   * peut ne jamais répondre. Au-delà de ce délai on considère NotchPay
+   * injoignable et on libère la requête.
+   */
+  requestTimeoutMs: 15_000,
+
+  /** Les clés sont optionnelles (le mode sans paiement reste possible), donc
+   * on expose explicitement leur présence plutôt que de laisser `undefined`
+   * partir dans un en-tête HTTP. */
+  get isConfigured(): boolean {
+    return Boolean(this.publicKey)
+  },
+
+  get isWebhookConfigured(): boolean {
+    return Boolean(this.hashKey)
+  },
+
   /** Where NotchPay redirects the customer once the payment is done. */
   get callbackUrl(): string {
     return `${env.get('FRONTEND_URL')}/billing/return`

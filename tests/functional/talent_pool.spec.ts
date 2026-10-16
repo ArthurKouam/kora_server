@@ -52,6 +52,19 @@ function featureErrorBody(response: { body(): unknown }): {
 }
 
 /**
+ * Corps d'erreur de l'API — `{ error, code }`.
+ *
+ * Le client de test type `body()` par l'union des réponses partageant la route
+ * (succès | erreur) : on lit donc le corps par un paramètre élargi plutôt que
+ * de caster directement l'union.
+ */
+function errorCode(response: { body(): unknown }): string | undefined {
+  const body = response.body()
+  if (body === null || typeof body !== 'object' || !('code' in body)) return undefined
+  return (body as { code: string }).code
+}
+
+/**
  * Ce qui coûte cher si c'est faux : un profil d'une autre organisation dans la
  * liste, un retrait qui emporte les candidatures, une capacité payante offerte
  * par un forfait qui ne la contient pas.
@@ -176,7 +189,7 @@ test.group('Vivier — accès par forfait', (group) => {
     const response = await client.get(BASE).loginAs(user)
 
     response.assertStatus(402)
-    assert.equal(response.body() as Record<string, any>, 'plan_feature_required')
+    assert.equal(errorCode(response), 'plan_feature_required')
     assert.equal(featureErrorBody(response).feature, 'talentPool')
     // Le client peut afficher quoi acheter au lieu d'un refus nu.
     assert.equal(featureErrorBody(response).requiredPlan.slug, 'pro')
@@ -205,7 +218,7 @@ test.group('Vivier — accès par forfait', (group) => {
 
     const write = await client.post(BASE).loginAs(user).json(manualPayload())
     write.assertStatus(402)
-    assert.equal(write.body() as Record<string, any>, 'subscription_expired')
+    assert.equal(errorCode(write), 'subscription_expired')
 
     await cleanup(organization)
   })
@@ -246,7 +259,7 @@ test.group('Vivier — ajout et doublons', (group) => {
       .loginAs(user)
       .json(manualPayload({ consentGiven: false }))
     refused.assertStatus(422)
-    assert.equal(refused.body() as Record<string, any>, 'consent_required')
+    assert.equal(errorCode(refused), 'consent_required')
 
     const response = await client.post(BASE).loginAs(user).json(manualPayload())
     response.assertStatus(201)

@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { DateTime } from 'luxon'
+import logger from '@adonisjs/core/services/logger'
 import notchpayConfig from '#config/notchpay'
 
 /**
@@ -33,18 +35,78 @@ export interface NotchPayTransaction {
 }
 
 export type NotchPayPaymentStatus =
-  'pending' | 'processing' | 'complete' | 'failed' | 'canceled' | 'expired'
+  | 'pending'
+  | 'processing'
+  | 'incomplete'
+  | 'complete'
+  | 'failed'
+  | 'canceled'
+  | 'rejected'
+  | 'abandoned'
+  | 'expired'
+  | 'refunded'
+  | 'partialy-refunded'
+
+/**
+ * Statuts acceptés par la colonne `payments.status` (contrainte CHECK).
+ * L'orthographe de `partialy-refunded` est celle du fournisseur : la corriger
+ * ici ferait échouer l'écriture d'un remboursement partiel.
+ */
+export const NOTCHPAY_PAYMENT_STATUSES: readonly NotchPayPaymentStatus[] = [
+  'pending',
+  'processing',
+  'incomplete',
+  'complete',
+  'failed',
+  'canceled',
+  'rejected',
+  'abandoned',
+  'expired',
+  'refunded',
+  'partialy-refunded',
+]
+
+/**
+ * NotchPay documente ces statuts mais l'API ne garantit pas la liste : sans
+ * filtre, un statut inconnu faisait échouer l'écriture en base (contrainte
+ * CHECK) et le webhook n'avançait plus du tout.
+ */
+export function isNotchPayPaymentStatus(value: unknown): value is NotchPayPaymentStatus {
+  return (
+    typeof value === 'string' && (NOTCHPAY_PAYMENT_STATUSES as readonly string[]).includes(value)
+  )
+}
+
+/**
+ * NotchPay renvoie ses dates en ISO 8601 (`2026-10-16T12:05:00.000000Z`).
+ * `DateTime.fromSQL` les refuse et produit une date invalide, que Lucid refuse
+ * ensuite d'enregistrer (`E_INVALID_DATE_COLUMN_VALUE`) : la confirmation
+ * partait en 500 et le forfait n'était jamais activé.
+ */
+export function parseNotchPayDate(value: string | null | undefined): DateTime | null {
+  if (!value) return null
+
+  const parsed = DateTime.fromISO(value, { zone: 'utc' })
+  return parsed.isValid ? parsed : null
+}
 
 export interface CreatedPayment {
   transaction: NotchPayTransaction
   authorizationUrl: string
 }
 
+/**
+ * Origine de l'échec, pour que l'appelant distingue une erreur de notre
+ * configuration ou une panne du fournisseur d'un refus métier.
+ */
+export type NotchPayErrorCode = 'not_configured' | 'unreachable' | 'provider_error'
+
 export class NotchPayError extends Error {
   constructor(
     message: string,
     readonly statusCode: number,
-    readonly body?: unknown
+    readonly body?: unknown,
+    readonly code: NotchPayErrorCode = 'provider_error'
   ) {
     super(message)
     this.name = 'NotchPayError'
@@ -149,14 +211,38 @@ export default class NotchPayService {
     path: string,
     body?: unknown
   ): Promise<T> {
-    const response = await fetch(`${notchpayConfig.apiBaseUrl}${path}`, {
-      method,
-      headers: {
-        'Authorization': notchpayConfig.publicKey,
-        'Content-Type': 'application/json',
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    })
+    /**
+     * Sans clé, `Authorization: undefined` part chez NotchPay qui répond 401 :
+     * le client voyait un « réessayez » alors que la cause est notre
+     * configuration. On échoue donc ici, avec un code explicite.
+     */
+    if (!notchpayConfig.publicKey) {
+      throw new NotchPayError(
+        'NOTCHPAY_PUBLIC_KEY est absente : le paiement en ligne est indisponible.',
+        500,
+        undefined,
+        'not_configured'
+      )
+    }
+
+    let response: Response
+
+    try {
+      response = await fetch(`${notchpayConfig.apiBaseUrl}${path}`, {
+        method,
+        headers: {
+          'Authorization': notchpayConfig.publicKey,
+          'Content-Type': 'application/json',
+        },
+        // Sans délai maximal, une panne de NotchPay laisse la requête du client
+        // suspendue indéfiniment (et consomme un worker).
+        signal: AbortSignal.timeout(notchpayConfig.requestTimeoutMs),
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      })
+    } catch (error) {
+      logger.error({ err: error, method, path }, 'NotchPay injoignable')
+      throw new NotchPayError('NotchPay est injoignable', 504, undefined, 'unreachable')
+    }
 
     const text = await response.text()
     let payload: any = text
@@ -168,6 +254,13 @@ export default class NotchPayService {
 
     if (!response.ok) {
       const message = payload?.message ?? `NotchPay request failed with status ${response.status}`
+
+      // Tracé ici : l'appelant ne renvoie qu'un message générique au client,
+      // donc sans cette ligne une clé expirée restait invisible.
+      logger.error(
+        { statusCode: response.status, method, path, body: payload },
+        'NotchPay a refusé la requête'
+      )
       throw new NotchPayError(message, response.status, payload)
     }
 

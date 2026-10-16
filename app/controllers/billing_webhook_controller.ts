@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
+import logger from '@adonisjs/core/services/logger'
+import notchpayConfig from '#config/notchpay'
 import Payment from '#models/payment'
 import PlanService from '#services/plan_service'
 import NotchPayService from '#services/notchpay_service'
@@ -38,6 +40,19 @@ export default class BillingWebhookController {
 
     const signature = request.header('x-notch-signature')
 
+    /**
+     * Sans clé de hachage, aucune signature ne peut être vérifiée : tous les
+     * webhooks seraient rejetés en 400 et le client paierait sans jamais voir
+     * son forfait activé. On répond non-2xx (donc NotchPay réessaiera une fois
+     * la configuration corrigée) et on trace explicitement.
+     */
+    if (!notchpayConfig.isWebhookConfigured) {
+      logger.error(
+        'NOTCHPAY_HASH_KEY est absente : les webhooks NotchPay ne peuvent pas être vérifiés'
+      )
+      return response.serviceUnavailable({ error: 'Webhook signature cannot be verified' })
+    }
+
     if (!NotchPayService.verifyWebhookSignature(rawBody, signature)) {
       // 400 explicite : la doc impose de refuser une signature invalide.
       return response.badRequest({ error: 'Invalid signature' })
@@ -47,7 +62,14 @@ export default class BillingWebhookController {
       id?: string
       type?: string
       created_at?: string
-      data?: { reference?: string; status?: string; amount?: number; currency?: string }
+      data?: {
+        id?: string
+        reference?: string
+        status?: string
+        completed_at?: string | null
+        amount?: number
+        currency?: string
+      }
     }
 
     try {
@@ -89,42 +111,46 @@ export default class BillingWebhookController {
       return response.ok({ received: true, ignored: true })
     }
 
-    const reference = event.data?.reference
+    /**
+     * Le webhook porte l'identifiant NotchPay (`data.id`) et peut porter notre
+     * référence (`data.reference`) : `findByAnyReference` accepte les deux.
+     */
+    const references = [event.data?.id, event.data?.reference]
 
-    if (!reference) {
-      await this.markProcessed(event.id, 'No payment reference in event')
+    if (!references.some(Boolean)) {
+      await this.markProcessed(event.id, 'No payment identifier in event')
       return response.ok({ received: true, ignored: true })
     }
 
-    const payment = await Payment.query()
-      .where('notchpay_reference', reference)
-      .preload('plan')
-      .first()
+    const payment = await Payment.findByAnyReference(references, undefined)
 
     if (!payment) {
       // Transaction inconnue : on le note sans échouer, le webhook ne sera
       // pas rejoué pour autant.
-      await this.markProcessed(event.id, `Unknown payment reference ${reference}`)
+      await this.markProcessed(event.id, `Unknown payment ${references.filter(Boolean).join(', ')}`)
       return response.ok({ received: true, matched: false })
     }
 
     try {
-      const status = event.data?.status ?? 'pending'
       const previousStatus = payment.status
 
-      payment.status = status as typeof payment.status
-      payment.payload = event.data
-      if (status === 'complete') {
-        payment.paidAt = DateTime.now()
-      }
+      payment.payload = event.data ?? null
+      // Statut validé et `completed_at` converti (ISO 8601) : un statut hors
+      // contrainte faisait échouer tout le traitement.
+      const status = payment.applyProviderTransaction({
+        status: event.data?.status ?? 'pending',
+        completed_at: event.data?.completed_at ?? null,
+      })
       await payment.save()
 
       // `previousStatus` évite d'écraser une échéance déjà prolongée si la
       // même notification arrive deux fois par un autre chemin.
-      if (status === 'complete' && previousStatus !== 'complete' && payment.plan) {
+      if (status === 'complete' && previousStatus !== 'complete' && payment.planId) {
         const organization = await payment.related('organization').query().first()
-        if (organization) {
-          await PlanService.activate(organization, payment.plan)
+        const plan = await payment.related('plan').query().first()
+
+        if (organization && plan) {
+          await PlanService.activate(organization, plan)
         }
       }
 

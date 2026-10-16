@@ -8,6 +8,8 @@ import Plan from '#models/plan'
 import User from '#models/user'
 import PlanService from '#services/plan_service'
 import NotchPayService from '#services/notchpay_service'
+import { parseNotchPayDate } from '#services/notchpay_service'
+import type { NotchPayTransaction } from '#services/notchpay_service'
 import { buildCsv } from '#services/csv'
 import notchpayConfig from '#config/notchpay'
 import { DateTime } from 'luxon'
@@ -255,6 +257,56 @@ test.group('Billing — quotas', () => {
   })
 })
 
+test.group('Billing — inscription', () => {
+  test('une organisation fraîchement créée n’a aucun forfait par défaut', async ({
+    client,
+    assert,
+  }) => {
+    const suffix = randomUUID()
+    const email = `nouveau-${suffix}@example.test`
+
+    const signup = await client.post('/api/v1/auth/signup').json({
+      firstName: 'Nouvelle',
+      lastName: 'Recruteuse',
+      email,
+      password: 'Motdepasse2026!',
+      passwordConfirmation: 'Motdepasse2026!',
+      organizationName: `Org ${suffix}`,
+    })
+
+    signup.assertStatus(201)
+
+    const user = await User.findByOrFail('email', email)
+    const organization = (await Organization.find(user.organizationId!))!
+
+    /**
+     * Le forfait est un choix du client : aucun repli implicite vers « Plus ».
+     * Le compte reste utilisable (aucun quota ne le bloque), mais n'accède à
+     * aucune capacité payante.
+     */
+    assert.isNull(organization.planId)
+    assert.isNull(organization.planExpiresAt)
+    assert.isNull(await PlanService.forOrganization(organization))
+
+    const subscription = await client.get('/api/v1/billing/subscription').loginAs(user)
+
+    subscription.assertStatus(200)
+
+    const body = subscription.body() as {
+      plan: unknown
+      limits: { maxActiveJobs: number | null; maxMembers: number | null }
+      capabilities: { talentPool: boolean }
+    }
+
+    assert.isNull(body.plan)
+    assert.isFalse(body.capabilities.talentPool)
+    // Un quota `null` veut dire « illimité », pas « zéro ».
+    assert.isNull(body.limits.maxActiveJobs)
+
+    await cleanup(organization)
+  })
+})
+
 test.group('Billing — expiration en lecture seule', () => {
   test('une organization expirée est bloquée en écriture', async ({ client, assert }) => {
     const { organization, owner } = await orgWithPlan('plus')
@@ -418,6 +470,271 @@ test.group('Billing — sécurité du paiement', () => {
 
     const response = await client.post('/api/v1/billing/checkout').json({ planId: randomUUID() })
     response.assertStatus(401)
+
+    await cleanup(organization)
+  })
+
+  test('checkout ne réutilise pas un paiement en attente d’un autre forfait', async ({
+    client,
+    assert,
+  }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const pro = await Plan.query().where('slug', 'pro').firstOrFail()
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+    const staleUrl = 'https://checkout.notchpay.co/pay/pro-en-attente'
+
+    await Payment.create({
+      organizationId: organization.id,
+      planId: pro.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'pending',
+      authorizationUrl: staleUrl,
+    })
+
+    const response = await client
+      .post('/api/v1/billing/checkout')
+      .loginAs(owner)
+      .json({ planId: plus.id })
+
+    // Sinon le client croirait choisir Plus et paierait Pro.
+    assert.notEqual(
+      (response.body() as { authorizationUrl?: string })?.authorizationUrl,
+      staleUrl
+    )
+    assert.notEqual((response.body() as { reused?: boolean })?.reused, true)
+
+    await cleanup(organization)
+  })
+
+  test('checkout ne réutilise pas un paiement en attente périmé', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+    const staleUrl = 'https://checkout.notchpay.co/pay/perime'
+
+    const stale = await Payment.create({
+      organizationId: organization.id,
+      planId: plus.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 8000,
+      currency: 'XAF',
+      status: 'pending',
+      authorizationUrl: staleUrl,
+    })
+
+    // Une transaction NotchPay expire après 3 h : au-delà, le lien ne permet
+    // plus de payer, mais l'ancien garde-fou le renvoyait quand même.
+    await db
+      .query()
+      .from('payments')
+      .where('id', stale.id)
+      .update({ created_at: DateTime.now().minus({ hours: 4 }).toSQL() })
+
+    const response = await client
+      .post('/api/v1/billing/checkout')
+      .loginAs(owner)
+      .json({ planId: plus.id })
+
+    assert.notEqual(
+      (response.body() as { authorizationUrl?: string })?.authorizationUrl,
+      staleUrl
+    )
+
+    await cleanup(organization)
+  })
+
+  test('confirm retrouve la transaction par le trxref renvoyé par NotchPay', async ({
+    client,
+    assert,
+  }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const plan = await Plan.query().where('slug', 'pro').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: plan.id,
+      // NotchPay renvoie son identifiant sous `reference` et le nôtre sous
+      // `trxref` : les deux doivent retrouver la même ligne, sinon un client
+      // qui vient de payer lit « paiement introuvable ».
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'pending',
+    })
+
+    const response = await client
+      .post('/api/v1/billing/confirm')
+      .loginAs(owner)
+      .json({ reference: 'trx.inconnu-des-deux-colonnes', trxref: payment.orderReference })
+
+    // Seul le 404 prouve l'échec de la recherche : la suite part en erreur
+    // faute de clé NotchPay dans l'environnement de test.
+    assert.notEqual(response.status(), 404)
+
+    await cleanup(organization)
+  })
+
+  test('confirm retrouve la transaction via le payload enregistré', async ({ client, assert }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const plan = await Plan.query().where('slug', 'pro').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: plan.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'pending',
+      // Cas documenté : le callback porte un `trx.*` qui n'est ni notre
+      // référence ni l'`id` stocké. Le payload reste le dernier recours.
+      payload: {
+        id: `pay_${randomUUID()}`,
+        reference: 'trx.callback-seulement',
+        trxref: null,
+      },
+    })
+
+    assert.isNotNull(payment.payload)
+
+    const response = await client
+      .post('/api/v1/billing/confirm')
+      .loginAs(owner)
+      .json({ reference: 'trx.callback-seulement' })
+
+    assert.notEqual(response.status(), 404)
+
+    await cleanup(organization)
+  })
+})
+
+test.group('Billing — statuts et dates NotchPay', () => {
+  test('les statuts étendus sont acceptés par la contrainte', async ({ assert }) => {
+    const { organization } = await orgWithPlan('plus')
+    const plan = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    /**
+     * Le CHECK d'origine n'en prévoyait que six : un abandon ou un
+     * remboursement faisait échouer l'écriture, donc le webhook ne pouvait
+     * jamais suivre l'état réel de la transaction.
+     */
+    const extended = [
+      'incomplete',
+      'abandoned',
+      'rejected',
+      'refunded',
+      'partialy-refunded',
+    ]
+
+    for (const status of extended) {
+      const payment = await Payment.create({
+        organizationId: organization.id,
+        planId: plan.id,
+        notchpayReference: `pay_${randomUUID()}`,
+        orderReference: `kor_${randomUUID().slice(0, 8)}`,
+        amount: 8000,
+        currency: 'XAF',
+        status,
+      })
+
+      assert.equal(payment.status, status)
+    }
+
+    await cleanup(organization)
+  })
+
+  test('un statut inconnu ne remplace pas le statut enregistré', async ({ assert }) => {
+    const { organization } = await orgWithPlan('plus')
+    const plan = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: plan.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 8000,
+      currency: 'XAF',
+      status: 'pending',
+    })
+
+    const applied = payment.applyProviderTransaction({ status: 'statut-imprevu-du-fournisseur' })
+
+    assert.equal(applied, 'pending')
+    assert.equal(payment.status, 'pending')
+
+    await cleanup(organization)
+  })
+
+  test('les dates NotchPay en ISO 8601 sont converties', ({ assert }) => {
+    const parsed = parseNotchPayDate('2026-10-16T11:05:00.000000Z')
+
+    assert.isNotNull(parsed)
+    assert.isTrue(parsed!.isValid)
+    assert.equal(parsed!.toISO(), '2026-10-16T11:05:00.000Z')
+
+    // `DateTime.fromSQL` acceptait ce format et produisait une date invalide :
+    // c'est ce qui faisait échouer l'enregistrement de `paid_at`.
+    assert.isNull(parseNotchPayDate(null))
+    assert.isNull(parseNotchPayDate(undefined))
+    assert.isNull(parseNotchPayDate('pas-une-date'))
+  })
+
+  test('confirm active le forfait sur une réponse NotchPay complète', async ({
+    client,
+    assert,
+  }) => {
+    let { organization, owner } = await orgWithPlan('plus')
+    const pro = await Plan.query().where('slug', 'pro').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: pro.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'pending',
+    })
+
+    const original = NotchPayService.retrievePayment
+
+    // Réponse réelle de l'API : statut `complete` et `completed_at` en ISO
+    // 8601. C'est ce format qui faisait échouer la confirmation (500) sans
+    // jamais activer le forfait.
+    NotchPayService.retrievePayment = async (): Promise<NotchPayTransaction> => ({
+      id: payment.notchpayReference!,
+      reference: payment.orderReference,
+      amount: 20000,
+      currency: 'XAF',
+      status: 'complete',
+      created_at: '2026-10-16T11:00:00.000000Z',
+      completed_at: '2026-10-16T11:05:00.000000Z',
+    })
+
+    try {
+      const response = await client
+        .post('/api/v1/billing/confirm')
+        .loginAs(owner)
+        .json({ reference: payment.notchpayReference! })
+
+      response.assertStatus(200)
+      assert.isTrue((response.body() as { activated: boolean }).activated)
+    } finally {
+      NotchPayService.retrievePayment = original
+    }
+
+    const synced = (await Payment.find(payment.id))!
+    assert.equal(synced.status, 'complete')
+    assert.isNotNull(synced.paidAt)
+    assert.equal(synced.paidAt!.toUTC().toFormat('HH:mm'), '11:05')
+
+    organization = (await Organization.find(organization.id))!
+    assert.equal(organization.planId, pro.id)
+    assert.isNotNull(organization.planExpiresAt)
 
     await cleanup(organization)
   })
