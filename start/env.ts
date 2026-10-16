@@ -37,4 +37,18 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_USER: Env.schema.string(),
   DB_PASSWORD: Env.schema.string(),
   DB_DATABASE: Env.schema.string(),
+
+  /**
+   * NotchPay (Mobile Money).
+   *
+   * Optionnelles : l'application doit démarrer sans elles (développement,
+   * tests, instance sans paiement en ligne), mais une tentative de paiement
+   * échoue alors avec un message explicite plutôt qu'un 401 obscur. Les
+   * déclarer ici permet au passage de valider leur format quand elles sont
+   * présentes — un `NOTCHPAY_MODE` mal orthographié est ainsi détecté au boot.
+   */
+  NOTCHPAY_MODE: Env.schema.enum.optional(['sandbox', 'production'] as const),
+  NOTCHPAY_PUBLIC_KEY: Env.schema.string.optional(),
+  NOTCHPAY_SECRET_KEY: Env.schema.string.optional(),
+  NOTCHPAY_HASH_KEY: Env.schema.string.optional(),
 })

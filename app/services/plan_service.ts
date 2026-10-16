@@ -10,30 +10,20 @@ import Plan from '#models/plan'
  * Règles :
  * - aucun contrôleur ne doit contenir de `if (plan.maxActiveJobs > ...)`.
  * - un quota `null` signifie « illimité », pas « zéro ».
+ * - une organisation sans forfait n'en reçoit pas par défaut : elle reste
+ *   utilisable (sinon toute inscription serait morte-née) mais n'accède à
+ *   aucune capacité payante, et c'est au client de choisir son forfait.
  * - `plan_expires_at` est null pour une organisation qui n'a jamais payé
  *   (offre commerciale, organization créée hors ligne) : dans ce cas on ne
- *   bloque rien, sinon toute nouvelle inscription serait immédiatement
- *   inutilisable.
+ *   bloque rien.
  * ─────────────────────────────────────────────────────────────────────
  */
 
-const DEFAULT_PLAN_SLUG = 'plus'
-
 export default class PlanService {
-  /**
-   * Plan de repli utilisé si l'organisation n'en a aucun.
-   * On ne crée pas de ligne à la volée : le seed de la migration fait foi.
-   */
-  static async defaultPlan(): Promise<Plan | null> {
-    return Plan.query().where('slug', DEFAULT_PLAN_SLUG).first()
-  }
-
   static async forOrganization(organization: Organization): Promise<Plan | null> {
-    if (organization.planId) {
-      const plan = await Plan.find(organization.planId)
-      if (plan) return plan
-    }
-    return this.defaultPlan()
+    if (!organization.planId) return null
+
+    return Plan.find(organization.planId)
   }
 
   /**

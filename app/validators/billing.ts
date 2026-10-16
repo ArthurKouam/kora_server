@@ -15,11 +15,15 @@ export const checkoutValidator = vine.create({
 })
 
 /**
- * Confirmation après retour du client : uniquement la référence NotchPay.
- * Le statut est vérifié côté serveur, jamais fourni ici.
+ * Confirmation après retour du client.
+ *
+ * Le statut est vérifié côté serveur, jamais fourni ici. NotchPay peut
+ * renvoyer notre référence sous `trxref` en plus de `reference` : on accepte
+ * les deux, le serveur cherche la transaction sur les deux.
  */
 export const confirmValidator = vine.create({
   reference: vine.string().trim().minLength(4).maxLength(120),
+  trxref: vine.string().trim().minLength(4).maxLength(120).optional(),
 })
 
 /** Export CSV des candidatures. */
