@@ -14,6 +14,10 @@ export default class Interview extends InterviewSchema {
   @belongsTo(() => User, { foreignKey: 'createdBy' })
   declare user: BelongsTo<typeof User>
 
+  /** Interviewer assigné (colonne `assigned_to`) */
+  @belongsTo(() => User, { foreignKey: 'assignedTo' })
+  declare assignee: BelongsTo<typeof User>
+
   @hasMany(() => Evaluation)
   declare evaluations: HasMany<typeof Evaluation>
 

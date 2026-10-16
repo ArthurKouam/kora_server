@@ -1,4 +1,5 @@
 import Organization from '#models/organization'
+import Plan from '#models/plan'
 import User from '#models/user'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { DateTime } from 'luxon'
@@ -10,6 +11,10 @@ export default class CreateDemoOrganizationSeeder extends BaseSeeder {
     const existing = await Organization.findBy('slug', 'acme-corp')
     if (existing) return
 
+    // Le vivier de talents est une capacité déclarée au forfait Pro
+    // (`plans.features.talentPool`) : la démo doit pouvoir la montrer.
+    const plan = await Plan.findBy('slug', 'pro')
+
     const organization = await Organization.create({
       name: 'Acme Corp',
       slug: 'acme-corp',
@@ -19,6 +24,8 @@ export default class CreateDemoOrganizationSeeder extends BaseSeeder {
       email: 'contact@acme.test',
       city: 'Paris',
       country: 'France',
+      planId: plan?.id ?? null,
+      planExpiresAt: plan ? DateTime.now().plus({ days: 30 }) : null,
     })
 
     await User.createMany([

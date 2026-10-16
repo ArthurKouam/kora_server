@@ -30,6 +30,8 @@ export const PERMISSIONS = [
   'applications.read',
   'applications.pipeline',
   'applications.request_information',
+  'applications.evaluate',
+  'applications.note',
 
   // Candidats
   'candidates.read',
@@ -62,6 +64,8 @@ const READ_ONLY: readonly Permission[] = [
 const PIPELINE: readonly Permission[] = [
   ...READ_ONLY,
   'applications.pipeline',
+  'applications.evaluate',
+  'applications.note',
   'talent_pool.manage',
   'interviews.schedule',
   'interviews.update',

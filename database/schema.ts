@@ -405,7 +405,7 @@ export class EmailSchema extends BaseModel {
 }
 
 export class EvaluationSchema extends BaseModel {
-  static $columns = ['applicationId', 'comments', 'createdAt', 'evaluatorId', 'id', 'interviewId', 'recommendation', 'score', 'strengths', 'updatedAt', 'weaknesses'] as const
+  static $columns = ['applicationId', 'comments', 'createdAt', 'criteria', 'evaluatorId', 'id', 'interviewId', 'recommendation', 'score', 'strengths', 'updatedAt', 'weaknesses'] as const
   $columns = EvaluationSchema.$columns
   @column()
   declare applicationId: string
@@ -413,6 +413,8 @@ export class EvaluationSchema extends BaseModel {
   declare comments: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column()
+  declare criteria: any | null
   @column()
   declare evaluatorId: string
   @column({ isPrimary: true })
@@ -485,6 +487,23 @@ export class InterviewSchema extends BaseModel {
   declare status: string | null
   @column()
   declare type: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class JobEvaluationCriterionSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'jobId', 'label', 'position', 'updatedAt'] as const
+  $columns = JobEvaluationCriterionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobId: string
+  @column()
+  declare label: string
+  @column()
+  declare position: number
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
