@@ -34,6 +34,15 @@ export const createSlotRequestValidator = vine.create({
 })
 
 export const updateInterviewValidator = vine.create({
-  status: vine.enum(['scheduled', 'completed', 'cancelled', 'rescheduled', 'no_show']),
+  // `status` est optionnel : la reprogrammation (date/lieu/lien) le renseigne
+  // rarement, tandis qu'un simple changement de statut l'utilise seul.
+  status: vine
+    .enum(['scheduled', 'completed', 'cancelled', 'rescheduled', 'no_show'])
+    .optional(),
   notes: vine.string().trim().maxLength(5000).nullable().optional(),
+  scheduledAt: vine.string().trim().minLength(10).optional(),
+  duration: vine.number().min(5).max(480).nullable().optional(),
+  type: vine.enum(['phone', 'video', 'onsite']).nullable().optional(),
+  location: vine.string().trim().maxLength(255).nullable().optional(),
+  meetingUrl: vine.string().trim().maxLength(500).nullable().optional(),
 })

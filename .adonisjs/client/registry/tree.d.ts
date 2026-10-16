@@ -45,8 +45,8 @@ export interface ApiDefinition {
     index: typeof routes['career.index']
     show: typeof routes['career.show']
     apply: typeof routes['career.apply']
-    resendOtp: typeof routes['career.resend_otp']
     verify: typeof routes['career.verify']
+    resendOtp: typeof routes['career.resend_otp']
     showSlotRequest: typeof routes['career.show_slot_request']
     showInvitation: typeof routes['career.show_invitation']
     submitSlots: typeof routes['career.submit_slots']
@@ -118,11 +118,22 @@ export interface ApiDefinition {
     indexAll: typeof routes['interviews.index_all']
     update: typeof routes['interviews.update']
   }
-  team: {
-    team: {
-      index: typeof routes['team.team.index']
-      invite: typeof routes['team.team.invite']
-    }
+  jobEvaluationCriteria: {
+    sources: typeof routes['job_evaluation_criteria.sources']
+    index: typeof routes['job_evaluation_criteria.index']
+    save: typeof routes['job_evaluation_criteria.save']
+    duplicate: typeof routes['job_evaluation_criteria.duplicate']
+  }
+  evaluations: {
+    index: typeof routes['evaluations.index']
+    upsert: typeof routes['evaluations.upsert']
+    destroy: typeof routes['evaluations.destroy']
+  }
+  applicationNotes: {
+    index: typeof routes['application_notes.index']
+    store: typeof routes['application_notes.store']
+    update: typeof routes['application_notes.update']
+    destroy: typeof routes['application_notes.destroy']
   }
   jobs: {
     index: typeof routes['jobs.index']
@@ -131,11 +142,12 @@ export interface ApiDefinition {
     update: typeof routes['jobs.update']
     destroy: typeof routes['jobs.destroy']
   }
-  forms: {
-    index: typeof routes['forms.index']
-    show: typeof routes['forms.show']
-    store: typeof routes['forms.store']
-    update: typeof routes['forms.update']
-    destroy: typeof routes['forms.destroy']
+  jobForms: {
+    sources: typeof routes['job_forms.sources']
+    show: typeof routes['job_forms.show']
+    saveDraft: typeof routes['job_forms.save_draft']
+    publish: typeof routes['job_forms.publish']
+    duplicateDraft: typeof routes['job_forms.duplicate_draft']
+    destroy: typeof routes['job_forms.destroy']
   }
 }

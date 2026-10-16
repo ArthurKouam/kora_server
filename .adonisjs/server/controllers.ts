@@ -4,14 +4,17 @@
  */
 
 export const controllers = {
+  ApplicationNotes: () => import('#controllers/application_notes_controller'),
   Applications: () => import('#controllers/applications_controller'),
   Billing: () => import('#controllers/billing_controller'),
   BillingWebhook: () => import('#controllers/billing_webhook_controller'),
   Candidates: () => import('#controllers/candidates_controller'),
   Career: () => import('#controllers/career_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
+  Evaluations: () => import('#controllers/evaluations_controller'),
   InformationRequests: () => import('#controllers/information_requests_controller'),
   Interviews: () => import('#controllers/interviews_controller'),
+  JobEvaluationCriteria: () => import('#controllers/job_evaluation_criteria_controller'),
   JobForms: () => import('#controllers/job_forms_controller'),
   Jobs: () => import('#controllers/jobs_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),

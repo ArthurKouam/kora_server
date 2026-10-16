@@ -278,6 +278,74 @@ router
             middleware.activeSubscription({ write: ['interviews.update'] }),
           ])
 
+        /**
+         * Grille d'évaluation de l'offre.
+         *
+         * `evaluation-criteria-sources` est déclarée AVANT `jobs/:id` pour ne
+         * pas être capturée comme un identifiant d'offre.
+         */
+        router
+          .get('jobs/evaluation-criteria-sources', [
+            controllers.JobEvaluationCriteria,
+            'sources',
+          ])
+          .use(middleware.permission({ permission: ['jobs.read'] }))
+        router
+          .get('jobs/:id/evaluation-criteria', [controllers.JobEvaluationCriteria, 'index'])
+          .use(middleware.permission({ permission: ['jobs.read'] }))
+        router
+          .put('jobs/:id/evaluation-criteria', [controllers.JobEvaluationCriteria, 'save'])
+          .use([
+            middleware.permission({ permission: ['jobs.update'] }),
+            middleware.activeSubscription({ write: ['jobs.update'] }),
+          ])
+        router
+          .post('jobs/:id/evaluation-criteria/duplicate', [
+            controllers.JobEvaluationCriteria,
+            'duplicate',
+          ])
+          .use([
+            middleware.permission({ permission: ['jobs.update'] }),
+            middleware.activeSubscription({ write: ['jobs.update'] }),
+          ])
+
+        /**
+         * Évaluations (dossier de candidature et entretiens). Le RBAC est
+         * appliqué dans le contrôleur : un interviewer ne peut noter que
+         * l'entretien qui lui est assigné (Bouncer InterviewPolicy).
+         */
+        router.get('applications/:id/evaluations', [controllers.Evaluations, 'index'])
+        router
+          .put('applications/:id/evaluations', [controllers.Evaluations, 'upsert'])
+          .use(middleware.activeSubscription({ write: ['applications.evaluate'] }))
+        router
+          .delete('applications/:id/evaluations/:evaluationId', [
+            controllers.Evaluations,
+            'destroy',
+          ])
+          .use(middleware.activeSubscription({ write: ['applications.evaluate'] }))
+
+        // Notes internes d'équipe
+        router.get('applications/:id/notes', [controllers.ApplicationNotes, 'index'])
+        router
+          .post('applications/:id/notes', [controllers.ApplicationNotes, 'store'])
+          .use([
+            middleware.permission({ permission: ['applications.note'] }),
+            middleware.activeSubscription({ write: ['applications.note'] }),
+          ])
+        router
+          .put('applications/:id/notes/:noteId', [controllers.ApplicationNotes, 'update'])
+          .use([
+            middleware.permission({ permission: ['applications.note'] }),
+            middleware.activeSubscription({ write: ['applications.note'] }),
+          ])
+        router
+          .delete('applications/:id/notes/:noteId', [controllers.ApplicationNotes, 'destroy'])
+          .use([
+            middleware.permission({ permission: ['applications.note'] }),
+            middleware.activeSubscription({ write: ['applications.note'] }),
+          ])
+
         router
           .group(() => {
             router.get('/', [controllers.Jobs, 'index'])

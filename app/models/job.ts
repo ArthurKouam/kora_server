@@ -7,6 +7,7 @@ import JobSkill from '#models/job_skill'
 import Application from '#models/application'
 import Skill from '#models/skill'
 import JobFormVersion from '#models/job_form_version'
+import JobEvaluationCriterion from '#models/job_evaluation_criterion'
 
 export default class Job extends JobSchema {
   static selfAssignPrimaryKey = false
@@ -25,6 +26,10 @@ export default class Job extends JobSchema {
 
   @hasMany(() => JobFormVersion)
   declare formVersions: HasMany<typeof JobFormVersion>
+
+  /** Grille d'évaluation de l'offre (dossier de candidature + entretiens) */
+  @hasMany(() => JobEvaluationCriterion)
+  declare evaluationCriteria: HasMany<typeof JobEvaluationCriterion>
 
   @belongsTo(() => JobFormVersion, { foreignKey: 'activeFormVersionId' })
   declare activeFormVersion: BelongsTo<typeof JobFormVersion>

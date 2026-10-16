@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Candidate from '#models/candidate'
+import TalentPoolEntry from '#models/talent_pool_entry'
 
 export default class CandidatesController {
   /**
@@ -131,6 +132,17 @@ export default class CandidatesController {
       )
       .firstOrFail()
 
-    return response.ok(candidate)
+    // Le bouton « Ajouter au vivier » de la fiche candidat est désactivé si le
+    // candidat y figure déjà — même contrat que le détail d'une candidature.
+    const poolEntry = await TalentPoolEntry.query()
+      .where('organization_id', organizationId)
+      .where('candidate_id', candidate.id)
+      .select('id', 'status')
+      .first()
+
+    return response.ok({
+      ...candidate.serialize(),
+      talentPool: poolEntry ? { id: poolEntry.id, status: poolEntry.status } : null,
+    })
   }
 }

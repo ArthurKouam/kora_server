@@ -273,14 +273,26 @@ export interface Registry {
   }
   'career.verify': {
     methods: ["POST"]
-    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug/apply/:pendingId/verify'
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug/verify'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
-      paramsTuple: [ParamValue, ParamValue, ParamValue]
-      params: { orgSlug: ParamValue; jobSlug: ParamValue; pendingId: ParamValue }
+      paramsTuple: [ParamValue, ParamValue]
+      params: { orgSlug: ParamValue; jobSlug: ParamValue }
       query: ExtractQuery<InferInput<(typeof import('#validators/career').verifyOtpValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['verify']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'career.resend_otp': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/orgs/:orgSlug/jobs/:jobSlug/verify/resend'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/career').resendOtpValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { orgSlug: ParamValue; jobSlug: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/career').resendOtpValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/career_controller').default['resendOtp']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/career_controller').default['resendOtp']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'career.show_slot_request': {
@@ -355,6 +367,78 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/information_requests_controller').default['publicSubmit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'team_invitations.public_show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/team-invitations/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+    }
+  }
+  'team_invitations.accept': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/team-invitations/:token/accept'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.accept_legacy': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/team-invitations/:token'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.public_show_alias': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/career/invitations/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicShow']>>>
+    }
+  }
+  'team_invitations.accept_alias': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/invitations/:token/accept'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.accept_legacy_alias': {
+    methods: ["POST"]
+    pattern: '/api/v1/career/invitations/:token'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').acceptTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'dashboard.stats': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/stats'
@@ -413,6 +497,78 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/reports_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reports_controller').default['index']>>>
+    }
+  }
+  'team_invitations.members': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/members'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['members']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['members']>>>
+    }
+  }
+  'team_invitations.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/invitations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['index']>>>
+    }
+  }
+  'team_invitations.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/team/invitations/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['show']>>>
+    }
+  }
+  'team_invitations.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team_invitation').createTeamInvitationValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/team_invitation').createTeamInvitationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team_invitations.resend': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations/:id/resend'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['resend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['resend']>>>
+    }
+  }
+  'team_invitations.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/team/invitations/:id/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['cancel']>>>
     }
   }
   'candidates.index': {
@@ -787,28 +943,136 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/interviews_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
-  'team.team.index': {
+  'job_evaluation_criteria.sources': {
     methods: ["GET","HEAD"]
-    pattern: '/api/v1/dashboard/team'
+    pattern: '/api/v1/dashboard/jobs/evaluation-criteria-sources'
     types: {
       body: {}
       paramsTuple: []
       params: {}
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['sources']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['sources']>>>
     }
   }
-  'team.team.invite': {
-    methods: ["POST"]
-    pattern: '/api/v1/dashboard/team/invitations'
+  'job_evaluation_criteria.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/jobs/:id/evaluation-criteria'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/billing').inviteMemberValidator)>>
-      paramsTuple: []
-      params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/billing').inviteMemberValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>> | { status: 422; response: { errors: SimpleError[] } }
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['index']>>>
+    }
+  }
+  'job_evaluation_criteria.save': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/jobs/:id/evaluation-criteria'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_evaluation_criteria').saveJobEvaluationCriteriaValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_evaluation_criteria').saveJobEvaluationCriteriaValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['save']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['save']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_evaluation_criteria.duplicate': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/jobs/:id/evaluation-criteria/duplicate'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_evaluation_criteria').duplicateJobEvaluationCriteriaValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_evaluation_criteria').duplicateJobEvaluationCriteriaValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['duplicate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_evaluation_criteria_controller').default['duplicate']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'evaluations.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/applications/:id/evaluations'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['index']>>>
+    }
+  }
+  'evaluations.upsert': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/applications/:id/evaluations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/evaluation').upsertEvaluationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/evaluation').upsertEvaluationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['upsert']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['upsert']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'evaluations.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/applications/:id/evaluations/:evaluationId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; evaluationId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/evaluations_controller').default['destroy']>>>
+    }
+  }
+  'application_notes.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/applications/:id/notes'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['index']>>>
+    }
+  }
+  'application_notes.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/applications/:id/notes'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/application_note').createApplicationNoteValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/application_note').createApplicationNoteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'application_notes.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/dashboard/applications/:id/notes/:noteId'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/application_note').updateApplicationNoteValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; noteId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/application_note').updateApplicationNoteValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'application_notes.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/dashboard/applications/:id/notes/:noteId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { id: ParamValue; noteId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_notes_controller').default['destroy']>>>
     }
   }
   'jobs.index': {
@@ -833,6 +1097,18 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/job').createJobValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_forms.sources': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/jobs/form-sources'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['sources']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['sources']>>>
     }
   }
   'job_forms.show': {
@@ -869,6 +1145,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['publish']>>>
+    }
+  }
+  'job_forms.duplicate_draft': {
+    methods: ["POST"]
+    pattern: '/api/v1/dashboard/jobs/:id/form/draft/duplicate'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job').duplicateJobFormValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job').duplicateJobFormValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['duplicateDraft']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_forms_controller').default['duplicateDraft']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'job_forms.destroy': {

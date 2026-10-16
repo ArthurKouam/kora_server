@@ -8,6 +8,47 @@ import Candidate from '#models/candidate'
 import Organization from '#models/organization'
 import User from '#models/user'
 import ApplicationStatusHistory from '#models/application_status_history'
+import ApplicationNote from '#models/application_note'
+import CandidateDocument from '#models/candidate_document'
+import Evaluation from '#models/evaluation'
+import JobEvaluationCriterion from '#models/job_evaluation_criterion'
+import drive from '@adonisjs/drive/services/main'
+
+/**
+ * Génère un PDF minimal mais valide (une page, quelques lignes de texte) que
+ * l'on stocke sur le disque pour que la prévisualisation CV soit testable.
+ */
+function buildSimplePdf(title: string, lines: string[]): Buffer {
+  const escape = (value: string) => value.replace(/[\\()]/g, '')
+  const content = [
+    `BT /F1 20 Tf 64 780 Td (${escape(title)}) Tj ET`,
+    ...lines.map((line, index) => `BT /F1 12 Tf 64 ${740 - index * 22} Td (${escape(line)}) Tj ET`),
+  ].join('\n')
+
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+    `<< /Length ${Buffer.byteLength(content, 'latin1')} >>\nstream\n${content}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ]
+
+  let pdf = '%PDF-1.4\n'
+  const offsets: number[] = []
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf, 'latin1'))
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`
+  })
+
+  const xrefOffset = Buffer.byteLength(pdf, 'latin1')
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  offsets.forEach((offset) => {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`
+  })
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`
+
+  return Buffer.from(pdf, 'latin1')
+}
 
 /**
  * Démo complète : jobs (tous statuts), formulaire publié couvrant les 9 types
@@ -48,6 +89,13 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
       country: 'France',
     })
 
+    // ── Grille d'évaluation par défaut de l'offre Dev ────────────────────
+    const devCriteria = await JobEvaluationCriterion.createMany([
+      { jobId: devJob.id, label: 'Technique', position: 0 },
+      { jobId: devJob.id, label: 'Communication', position: 1 },
+      { jobId: devJob.id, label: 'Adéquation au poste', position: 2 },
+    ])
+
     await Job.create({
       organizationId: organization.id,
       createdBy: owner.id,
@@ -58,7 +106,7 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
       city: 'Paris',
     })
 
-    await Job.create({
+    const recruiterJob = await Job.create({
       organizationId: organization.id,
       createdBy: owner.id,
       title: 'Chargé(e) de recrutement',
@@ -70,6 +118,12 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
       publishedAt: DateTime.now().minus({ days: 20 }),
       city: 'Lyon',
     })
+
+    // Grille plus courte, utile comme source de duplication.
+    await JobEvaluationCriterion.createMany([
+      { jobId: recruiterJob.id, label: 'Technique', position: 0 },
+      { jobId: recruiterJob.id, label: 'Communication', position: 1 },
+    ])
 
     await Job.create({
       organizationId: organization.id,
@@ -335,6 +389,100 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
         })
       }
     }
+
+    // ── Évaluations & notes internes (dossier + entretien) ───────────────
+    const sarah = await User.findByOrFail('email', 'sarah@acme.test')
+    const marc = await User.findByOrFail('email', 'marc@acme.test')
+
+    const marie = await Candidate.findByOrFail('email', 'marie.dupont@exemple.test')
+    const marieApplication = await Application.query()
+      .where('candidate_id', marie.id)
+      .where('job_id', devJob.id)
+      .firstOrFail()
+
+    // ── CV de démo : fichier PDF réel sur le disque, pour tester l'aperçu ──
+    const cvKey = 'cvs/demo-marie-dupont.pdf'
+    const cvBuffer = buildSimplePdf('Marie Dupont', [
+      'Developpeuse Full-Stack senior - 6 ans d experience',
+      'Nantes, France - marie.dupont@exemple.test',
+      '',
+      'Competences : Vue.js, Nuxt, Node.js, PostgreSQL, TypeScript',
+      'Langues : Francais, Anglais',
+    ])
+    await drive.use().put(cvKey, cvBuffer)
+    const cvDocument = await CandidateDocument.create({
+      candidateId: marie.id,
+      applicationId: marieApplication.id,
+      type: 'cv',
+      name: 'cv-marie-dupont.pdf',
+      filePath: cvKey,
+      mimeType: 'application/pdf',
+      fileSize: cvBuffer.length,
+    })
+    await marieApplication.merge({ cvDocumentId: cvDocument.id }).save()
+
+    const marieInterview = await Interview.query()
+      .where('application_id', marieApplication.id)
+      .first()
+
+    const scores = (byLabel: Record<string, number>) =>
+      devCriteria.map((criterion) => ({
+        criterionId: criterion.id,
+        label: criterion.label,
+        score: byLabel[criterion.label] ?? 3,
+      }))
+
+    // Évaluations du dossier de candidature (interviewId = null).
+    // Moyennes arrondies : 4 / 5 / 4, comme la maquette.
+    await Evaluation.create({
+      applicationId: marieApplication.id,
+      interviewId: null,
+      evaluatorId: owner.id,
+      criteria: JSON.stringify(scores({ Technique: 4, Communication: 5, 'Adéquation au poste': 4 })),
+      score: 4,
+      recommendation: 'yes',
+      comments: 'Très bon profil technique, à confirmer en entretien.',
+      createdAt: DateTime.now().minus({ days: 2 }),
+    })
+    await Evaluation.create({
+      applicationId: marieApplication.id,
+      interviewId: null,
+      evaluatorId: sarah.id,
+      criteria: JSON.stringify(scores({ Technique: 4, Communication: 5, 'Adéquation au poste': 3 })),
+      score: 4,
+      recommendation: 'yes',
+      comments: "Dossier solide. Léger doute sur l'adéquation au poste.",
+      createdAt: DateTime.now().minus({ days: 1 }),
+    })
+
+    // Évaluation de l'entretien.
+    if (marieInterview) {
+      await Evaluation.create({
+        applicationId: marieApplication.id,
+        interviewId: marieInterview.id,
+        evaluatorId: marc.id,
+        criteria: JSON.stringify(scores({ Technique: 4, Communication: 4, 'Adéquation au poste': 5 })),
+        score: 4,
+        recommendation: 'strong_yes',
+        comments: 'Entretien convaincant, bonne posture.',
+      })
+    }
+
+    // Notes internes d'équipe.
+    await ApplicationNote.createMany([
+      {
+        applicationId: marieApplication.id,
+        authorId: sarah.id,
+        content: 'Candidature bien complète, portfolio à regarder.',
+        createdAt: DateTime.now().minus({ days: 2 }),
+      },
+      {
+        applicationId: marieApplication.id,
+        authorId: marc.id,
+        content: 'Prévoir un exercice technique sur Vue.js pendant l’entretien.',
+        createdAt: DateTime.now().minus({ days: 1 }),
+      },
+    ])
   }
 }
 

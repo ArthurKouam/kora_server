@@ -26,11 +26,23 @@ export default class ApplicationsController {
       .andWhereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
       .preload('candidate')
       .preload('job', (jobsQuery) =>
-        jobsQuery.select('id', 'title', 'slug', 'location', 'city', 'country')
+        jobsQuery
+          .select('id', 'title', 'slug', 'location', 'city', 'country')
+          .preload('evaluationCriteria', (criteriaQuery) =>
+            criteriaQuery.orderBy('position', 'asc')
+          )
       )
       .preload('cvDocument')
+      .preload('evaluations', (evaluationsQuery) =>
+        evaluationsQuery.preload('evaluator').orderBy('created_at', 'asc')
+      )
+      .preload('notes', (notesQuery) => notesQuery.preload('author').orderBy('created_at', 'desc'))
       .preload('statusHistory', (historyQuery) =>
-        historyQuery.orderBy('created_at', 'asc').limit(50)
+        historyQuery
+          .preload('changedByUser')
+          .preload('changedByCandidate')
+          .orderBy('created_at', 'asc')
+          .limit(50)
       )
       .firstOrFail()
 
@@ -165,6 +177,9 @@ export default class ApplicationsController {
     try {
       const stream = await drive.use().getStream(document.filePath)
       response.header('content-type', document.mimeType ?? 'application/octet-stream')
+      // L'app affiche le document en aperçu intégré dans un iframe de même
+      // origine : on assouplit le X-Frame-Options global (DENY) pour ce flux.
+      response.header('x-frame-options', 'SAMEORIGIN')
       return response.stream(stream)
     } catch {
       return response.notFound({ error: 'File missing from storage' })

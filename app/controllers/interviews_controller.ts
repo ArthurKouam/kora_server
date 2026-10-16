@@ -60,6 +60,10 @@ export default class InterviewsController {
 
     const interviews = await Interview.query()
       .where('application_id', application.id)
+      .preload('assignee')
+      .preload('evaluations', (evaluationsQuery) =>
+        evaluationsQuery.preload('evaluator').orderBy('created_at', 'asc')
+      )
       .orderBy('scheduled_at', 'desc')
 
     return response.ok(interviews)
@@ -202,7 +206,14 @@ export default class InterviewsController {
     }
 
     if (payload.notes !== undefined) interview.notes = payload.notes
-    if (!notesOnly) interview.status = payload.status
+    if (!notesOnly) {
+      if (payload.status !== undefined) interview.status = payload.status
+      if (payload.scheduledAt !== undefined) interview.scheduledAt = DateTime.fromISO(payload.scheduledAt)
+      if (payload.duration !== undefined) interview.duration = payload.duration
+      if (payload.type !== undefined) interview.type = payload.type
+      if (payload.location !== undefined) interview.location = payload.location
+      if (payload.meetingUrl !== undefined) interview.meetingUrl = payload.meetingUrl
+    }
     await interview.save()
 
     return response.ok(interview)
