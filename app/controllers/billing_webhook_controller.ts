@@ -150,7 +150,7 @@ export default class BillingWebhookController {
         const plan = await payment.related('plan').query().first()
 
         if (organization && plan) {
-          await PlanService.activate(organization, plan)
+          await PlanService.activate(organization, plan, payment.durationDays)
         }
       }
 

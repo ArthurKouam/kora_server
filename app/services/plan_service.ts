@@ -19,7 +19,36 @@ import Plan from '#models/plan'
  * ─────────────────────────────────────────────────────────────────────
  */
 
+/** Formule choisie au paiement. L'annuelle offre 2 mois sur 12. */
+export type BillingPeriod = 'monthly' | 'yearly'
+
 export default class PlanService {
+  /**
+   * Durée accordée par un achat annuel : 12 mois facturés au prix de 10,
+   * soit les 2 mois offerts. La remise vit dans `plans.price_xaf_yearly`.
+   */
+  static readonly ANNUAL_DURATION_DAYS = 365
+
+  /**
+   * Montant et durée d'un achat, lus sur la ligne `plans` — jamais sur le
+   * payload HTTP, sinon on achèterait Pro pour 100 FCFA.
+   *
+   * Retourne `null` quand le forfait n'a pas d'offre pour cette formule
+   * (annuelle absente, ou forfait sur devis).
+   */
+  static checkoutTerms(
+    plan: Plan,
+    period: BillingPeriod
+  ): { amount: number; durationDays: number } | null {
+    if (period === 'yearly') {
+      if (plan.priceXafYearly === null) return null
+      return { amount: plan.priceXafYearly, durationDays: this.ANNUAL_DURATION_DAYS }
+    }
+
+    if (plan.priceXaf === null) return null
+    return { amount: plan.priceXaf, durationDays: plan.durationDays }
+  }
+
   static async forOrganization(organization: Organization): Promise<Plan | null> {
     if (!organization.planId) return null
 
@@ -104,8 +133,16 @@ export default class PlanService {
    * Active le plan après un paiement confirmé.
    * On prolonge depuis l'échéance si l'organisation est encore active
    * (renouvellement anticipé), sinon on part de maintenant.
+   *
+   * `durationDays` est la durée réellement achetée (30 jours, 365 pour
+   * l'annuelle), figée sur le paiement : se rabattre sur `plan.durationDays`
+   * ferait qu'un achat annuel n'accorderait qu'un mois.
    */
-  static async activate(organization: Organization, plan: Plan): Promise<void> {
+  static async activate(
+    organization: Organization,
+    plan: Plan,
+    durationDays: number = plan.durationDays
+  ): Promise<void> {
     const now = DateTime.now()
     const from =
       organization.planExpiresAt && organization.planExpiresAt > now
@@ -113,7 +150,7 @@ export default class PlanService {
         : now
 
     organization.planId = plan.id
-    organization.planExpiresAt = from.plus({ days: plan.durationDays })
+    organization.planExpiresAt = from.plus({ days: durationDays })
     await organization.save()
   }
 
