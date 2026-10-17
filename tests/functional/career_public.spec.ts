@@ -1,5 +1,6 @@
 import Job from '#models/job'
 import Organization from '#models/organization'
+import Candidate from '#models/candidate'
 import User from '#models/user'
 import { test } from '@japa/runner'
 import { randomUUID } from 'node:crypto'
@@ -15,7 +16,11 @@ const BASE = '/api/v1/career'
  */
 async function fixtures() {
   const suffix = randomUUID()
-  const alpha = await Organization.create({ name: `Alpha ${suffix}`, slug: `alpha-${suffix}` })
+  const alpha = await Organization.create({
+    name: `Alpha ${suffix}`,
+    slug: `alpha-${suffix}`,
+    email: `contact-${suffix}@alpha.test`,
+  })
   const beta = await Organization.create({ name: `Beta ${suffix}`, slug: `beta-${suffix}` })
 
   const alphaUser = await User.create({
@@ -93,6 +98,8 @@ test.group('Career public — liste des offres', () => {
     response.assertStatus(200)
     const body = response.body()
     assert.equal(body.organization.name, alpha.name)
+    // Destinataire de la candidature spontanée (pied de liste).
+    assert.equal(body.organization.email, alpha.email)
     assert.lengthOf(body.data, 2)
     assert.notInclude(
       body.data.map((job: { id: string }) => job.id),
@@ -238,5 +245,52 @@ test.group('Career public — isolation entre organisations', () => {
 
     response.assertStatus(200)
     assert.lengthOf(response.body().data, 2)
+  })
+})
+
+test.group('Career public — fiche candidat enrichie', () => {
+  test('la candidature enregistre la ville et le lien du candidat', async ({
+    client,
+    assert,
+  }) => {
+    const { alpha, alphaJob } = await fixtures()
+    const email = `enrichi-${randomUUID()}@example.test`
+
+    const response = await client
+      .post(`${BASE}/orgs/${alpha.slug}/jobs/${alphaJob.slug}/apply`)
+      .json({
+        candidate: {
+          firstName: 'Awa',
+          lastName: 'Diallo',
+          email,
+          city: 'Yaoundé',
+          portfolioUrl: 'https://linkedin.com/in/awa-diallo',
+        },
+      })
+
+    // 202 : la candidature attend la vérification par code, mais la fiche
+    // candidat est déjà créée — c'est elle que le recruteur consultera.
+    response.assertStatus(202)
+
+    const candidate = await Candidate.findByOrFail('email', email)
+    assert.equal(candidate.city, 'Yaoundé')
+    assert.equal(candidate.portfolioUrl, 'https://linkedin.com/in/awa-diallo')
+  })
+
+  test('un lien sans schéma http est refusé', async ({ client }) => {
+    const { alpha, alphaJob } = await fixtures()
+
+    const response = await client
+      .post(`${BASE}/orgs/${alpha.slug}/jobs/${alphaJob.slug}/apply`)
+      .json({
+        candidate: {
+          firstName: 'Awa',
+          lastName: 'Diallo',
+          email: `lien-${randomUUID()}@example.test`,
+          portfolioUrl: 'linkedin.com/in/awa',
+        },
+      })
+
+    response.assertStatus(422)
   })
 })

@@ -50,6 +50,7 @@ export default class CareerController {
         'about',
         'description',
         'website',
+        'email',
         'industry',
         'city',
         'country'
@@ -126,6 +127,8 @@ export default class CareerController {
         about: organization.about,
         description: organization.description,
         website: organization.website,
+        /** Destinataire de la candidature spontanée proposée en pied de liste. */
+        email: organization.email,
         industry: organization.industry,
         city: organization.city,
         country: organization.country,
@@ -267,12 +270,17 @@ export default class CareerController {
         firstName: payload.candidate.firstName,
         lastName: payload.candidate.lastName,
         phone: payload.candidate.phone ?? null,
+        city: payload.candidate.city ?? null,
+        portfolioUrl: payload.candidate.portfolioUrl ?? null,
       })
     } else {
-      // Complète les informations manquantes du profil existant
+      // Complète les informations manquantes du profil existant, sans écraser
+      // ce qu'une candidature précédente a déjà renseigné.
       candidate.firstName = candidate.firstName ?? payload.candidate.firstName
       candidate.lastName = candidate.lastName ?? payload.candidate.lastName
       candidate.phone = candidate.phone ?? payload.candidate.phone ?? null
+      candidate.city = candidate.city ?? payload.candidate.city ?? null
+      candidate.portfolioUrl = candidate.portfolioUrl ?? payload.candidate.portfolioUrl ?? null
       await candidate.save()
     }
 

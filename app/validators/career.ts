@@ -11,6 +11,19 @@ export const applyValidator = vine.create({
     lastName: vine.string().trim().minLength(1).maxLength(100),
     email: vine.string().trim().email().maxLength(255),
     phone: vine.string().trim().maxLength(50).nullable().optional(),
+    /** Ville de résidence — affichée au recruteur sur la fiche candidat. */
+    city: vine.string().trim().maxLength(100).nullable().optional(),
+    /**
+     * LinkedIn ou portfolio. Le formulaire public n'a qu'un champ : on accepte
+     * une URL http(s), le front préfixe `https://` s'il manque le schéma.
+     */
+    portfolioUrl: vine
+      .string()
+      .trim()
+      .regex(/^https?:\/\/[^\s]+$/i)
+      .maxLength(500)
+      .nullable()
+      .optional(),
   }),
   coverLetter: vine.string().trim().maxLength(5000).nullable().optional(),
   // Validées contre la définition publiée par le service dédié — pas de shape statique
