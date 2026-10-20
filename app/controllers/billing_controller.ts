@@ -43,6 +43,7 @@ export default class BillingController {
         name: plan.name,
         description: plan.description,
         priceXaf: plan.priceXaf,
+        priceXafYearly: plan.priceXafYearly,
         durationDays: plan.durationDays,
         maxActiveJobs: plan.maxActiveJobs,
         maxMembers: plan.maxMembers,
@@ -113,6 +114,7 @@ export default class BillingController {
         currency: payment.currency,
         status: payment.status,
         planName: payment.plan?.name ?? null,
+        durationDays: payment.durationDays,
         paidAt: payment.paidAt?.toISO() ?? null,
         createdAt: payment.createdAt.toISO(),
       }))
@@ -145,6 +147,20 @@ export default class BillingController {
       })
     }
 
+    /**
+     * Montant et durée viennent du plan, jamais du payload. `null` = cette
+     * formule n'existe pas pour ce forfait (pas d'offre annuelle, par exemple).
+     */
+    const period = payload.period ?? 'monthly'
+    const terms = PlanService.checkoutTerms(plan, period)
+
+    if (!terms) {
+      return response.forbidden({
+        error: 'Cette formule n’est pas disponible pour ce forfait. Contactez-nous.',
+        contactEmail: plan.contactEmail,
+      })
+    }
+
     const user = auth.use('web').getUserOrFail()
 
     /**
@@ -162,6 +178,7 @@ export default class BillingController {
     const reusable = await Payment.query()
       .where('organization_id', organization.id)
       .where('plan_id', plan.id)
+      .where('duration_days', terms.durationDays)
       .whereIn('status', ['pending', 'processing'])
       .where('created_at', '>', DateTime.now().minus({ hours: 3 }).toSQL()!)
       .orderBy('created_at', 'desc')
@@ -220,19 +237,22 @@ export default class BillingController {
       const orderReference = this.buildOrderReference(organization.id)
 
       const created = await NotchPayService.createPayment({
-        amount: plan.priceXaf,
+        amount: terms.amount,
         currency: 'XAF',
         customer: {
           name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email,
           email: user.email,
           phone: payload.phone ?? organization.phone ?? null,
         },
-        description: `KoraHire — forfait ${plan.name}`,
+        description: `KoraHire — forfait ${plan.name}${
+          period === 'yearly' ? ' (12 mois)' : ''
+        }`,
         reference: orderReference,
         metadata: {
           organizationId: organization.id,
           planId: plan.id,
           planSlug: plan.slug,
+          period,
         },
       })
 
@@ -246,8 +266,9 @@ export default class BillingController {
          */
         notchpayReference: created.transaction.id ?? created.transaction.reference,
         orderReference,
-        amount: plan.priceXaf,
+        amount: terms.amount,
         currency: 'XAF',
+        durationDays: terms.durationDays,
         // Un statut hors contrainte ferait échouer l'insertion : on retombe sur
         // `pending`, la resynchronisation corrigera le tir.
         status: isNotchPayPaymentStatus(created.transaction.status)
@@ -355,7 +376,7 @@ export default class BillingController {
       return response.unprocessableEntity({ error: 'Plan introuvable pour ce paiement' })
     }
 
-    await PlanService.activate(organization, plan)
+    await PlanService.activate(organization, plan, payment.durationDays)
 
     return response.ok({
       status,
@@ -500,7 +521,7 @@ export default class BillingController {
       if (plan) {
         const organization = await Organization.find(payment.organizationId)
         if (organization) {
-          await PlanService.activate(organization, plan)
+          await PlanService.activate(organization, plan, payment.durationDays)
         }
       }
     }

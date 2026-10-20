@@ -712,7 +712,7 @@ export class PasswordResetTokenSchema extends BaseModel {
 }
 
 export class PaymentSchema extends BaseModel {
-  static $columns = ['amount', 'authorizationUrl', 'createdAt', 'currency', 'customerEmail', 'customerName', 'customerPhone', 'id', 'notchpayReference', 'orderReference', 'organizationId', 'paidAt', 'payload', 'planId', 'provider', 'status', 'updatedAt'] as const
+  static $columns = ['amount', 'authorizationUrl', 'createdAt', 'currency', 'customerEmail', 'customerName', 'customerPhone', 'durationDays', 'id', 'notchpayReference', 'orderReference', 'organizationId', 'paidAt', 'payload', 'planId', 'provider', 'status', 'updatedAt'] as const
   $columns = PaymentSchema.$columns
   @column()
   declare amount: number
@@ -728,6 +728,8 @@ export class PaymentSchema extends BaseModel {
   declare customerName: string | null
   @column()
   declare customerPhone: string | null
+  @column()
+  declare durationDays: number
   @column({ isPrimary: true })
   declare id: string
   @column()
@@ -776,7 +778,7 @@ export class PendingApplicationSchema extends BaseModel {
 }
 
 export class PlanSchema extends BaseModel {
-  static $columns = ['contactEmail', 'createdAt', 'description', 'durationDays', 'features', 'id', 'isActive', 'isPublic', 'maxActiveJobs', 'maxMembers', 'name', 'priceXaf', 'slug', 'sortOrder', 'updatedAt'] as const
+  static $columns = ['contactEmail', 'createdAt', 'description', 'durationDays', 'features', 'id', 'isActive', 'isPublic', 'maxActiveJobs', 'maxMembers', 'name', 'priceXaf', 'priceXafYearly', 'slug', 'sortOrder', 'updatedAt'] as const
   $columns = PlanSchema.$columns
   @column()
   declare contactEmail: string | null
@@ -802,6 +804,8 @@ export class PlanSchema extends BaseModel {
   declare name: string
   @column()
   declare priceXaf: number | null
+  @column()
+  declare priceXafYearly: number | null
   @column()
   declare slug: string
   @column()

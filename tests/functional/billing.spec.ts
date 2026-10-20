@@ -10,6 +10,7 @@ import PlanService from '#services/plan_service'
 import NotchPayService from '#services/notchpay_service'
 import { parseNotchPayDate } from '#services/notchpay_service'
 import type { NotchPayTransaction } from '#services/notchpay_service'
+import type { CreatedPayment } from '#services/notchpay_service'
 import { buildCsv } from '#services/csv'
 import notchpayConfig from '#config/notchpay'
 import { DateTime } from 'luxon'
@@ -135,17 +136,20 @@ test.group('Billing — plans et visibilité publique', () => {
 
     const plus = mustFind(body, (p: any) => p.slug === 'plus', 'plan "plus"')
     assert.equal(plus.priceXaf, 8000)
+    assert.equal(plus.priceXafYearly, 80000)
     assert.equal(plus.maxActiveJobs, 5)
     assert.equal(plus.maxMembers, 3)
     assert.isTrue(plus.isPurchasable)
 
     const pro = mustFind(body, (p: any) => p.slug === 'pro', 'plan "pro"')
     assert.equal(pro.priceXaf, 20000)
+    assert.equal(pro.priceXafYearly, 200000)
     assert.equal(pro.maxActiveJobs, 20)
     assert.equal(pro.maxMembers, 10)
 
     const enterprise = mustFind(body, (p: any) => p.slug === 'enterprise', 'plan "enterprise"')
     assert.isNull(enterprise.priceXaf)
+    assert.isNull(enterprise.priceXafYearly)
     assert.isFalse(enterprise.isPublic)
     // Non achetable : le bouton doit proposer un contact, pas un paiement.
     assert.isFalse(enterprise.isPurchasable)
@@ -384,6 +388,186 @@ test.group('Billing — expiration en lecture seule', () => {
 
     const days = organization.planExpiresAt!.diff(future, 'days').days
     assert.isTrue(Math.abs(days - 30) < 1)
+
+    await cleanup(organization)
+  })
+})
+
+test.group('Billing — formule annuelle', () => {
+  test('checkout annuel facture 10 mois pour 12 et fige la durée', async ({
+    client,
+    assert,
+  }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    const original = NotchPayService.createPayment
+
+    /**
+     * Réponse NotchPay stubée : les clés ne sont pas configurées en test, et
+     * l'objet du test est le montant et la durée, pas l'appel réseau.
+     */
+    NotchPayService.createPayment = async (input): Promise<CreatedPayment> => ({
+      transaction: {
+        id: `trx.${randomUUID()}`,
+        reference: input.reference,
+        amount: input.amount,
+        currency: 'XAF',
+        status: 'pending',
+      },
+      authorizationUrl: 'https://checkout.notchpay.co/pay/annuel',
+    })
+
+    let response
+    try {
+      response = await client
+        .post('/api/v1/billing/checkout')
+        .loginAs(owner)
+        .json({ planId: plus.id, period: 'yearly' })
+    } finally {
+      NotchPayService.createPayment = original
+    }
+
+    response.assertStatus(201)
+    // 10 × 8 000 : les 2 mois offerts ne viennent pas du payload.
+    assert.equal((response.body() as { amount: number }).amount, 80000)
+
+    const payment = await Payment.query()
+      .where('organization_id', organization.id)
+      .orderBy('created_at', 'desc')
+      .firstOrFail()
+    assert.equal(payment.amount, 80000)
+    // Durée figée : sans elle, l'activation se rabattrait sur les 30 jours du plan.
+    assert.equal(payment.durationDays, 365)
+
+    const history = await client.get('/api/v1/billing/payments').loginAs(owner)
+    history.assertStatus(200)
+    assert.equal((history.body() as { durationDays: number }[])[0].durationDays, 365)
+
+    await cleanup(organization)
+  })
+
+  test('un paiement mensuel en attente n’est pas réutilisé pour un achat annuel', async ({
+    client,
+    assert,
+  }) => {
+    const { organization, owner } = await orgWithPlan('plus')
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    await Payment.create({
+      organizationId: organization.id,
+      planId: plus.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 8000,
+      currency: 'XAF',
+      durationDays: 30,
+      status: 'pending',
+      authorizationUrl: 'https://checkout.notchpay.co/pay/mensuel-en-attente',
+    })
+
+    const original = NotchPayService.createPayment
+    NotchPayService.createPayment = async (input): Promise<CreatedPayment> => ({
+      transaction: {
+        id: `trx.${randomUUID()}`,
+        reference: input.reference,
+        amount: input.amount,
+        currency: 'XAF',
+        status: 'pending',
+      },
+      authorizationUrl: 'https://checkout.notchpay.co/pay/annuel-neuf',
+    })
+
+    let response
+    try {
+      response = await client
+        .post('/api/v1/billing/checkout')
+        .loginAs(owner)
+        .json({ planId: plus.id, period: 'yearly' })
+    } finally {
+      NotchPayService.createPayment = original
+    }
+
+    // Réutiliser le lien mensuel ferait payer 8 000 F en annonçant une année.
+    assert.equal((response.body() as { reused?: boolean }).reused, false)
+    assert.equal((response.body() as { amount: number }).amount, 80000)
+
+    await cleanup(organization)
+  })
+
+  test('PlanService.checkoutTerms refuse une formule absente du forfait', async ({
+    assert,
+  }) => {
+    const enterprise = await Plan.query().where('slug', 'enterprise').firstOrFail()
+    assert.isNull(PlanService.checkoutTerms(enterprise, 'monthly'))
+    assert.isNull(PlanService.checkoutTerms(enterprise, 'yearly'))
+
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+    assert.deepEqual(PlanService.checkoutTerms(plus, 'monthly'), {
+      amount: 8000,
+      durationDays: 30,
+    })
+    assert.deepEqual(PlanService.checkoutTerms(plus, 'yearly'), {
+      amount: 80000,
+      durationDays: 365,
+    })
+  })
+
+  test('activate accorde 365 jours pour un achat annuel', async ({ assert }) => {
+    let { organization } = await orgWithPlan('plus')
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    await PlanService.activate(organization, plus, PlanService.ANNUAL_DURATION_DAYS)
+    organization = (await Organization.find(organization.id))!
+
+    const days = organization.planExpiresAt!.diff(DateTime.now(), 'days').days
+    assert.isTrue(Math.abs(days - 365) < 1)
+
+    await cleanup(organization)
+  })
+
+  test('confirm active 365 jours pour un paiement annuel', async ({ client, assert }) => {
+    let { organization, owner } = await orgWithPlan('plus')
+    const plus = await Plan.query().where('slug', 'plus').firstOrFail()
+
+    const payment = await Payment.create({
+      organizationId: organization.id,
+      planId: plus.id,
+      notchpayReference: `pay_${randomUUID()}`,
+      orderReference: `kor_${randomUUID().slice(0, 8)}`,
+      amount: 80000,
+      currency: 'XAF',
+      durationDays: 365,
+      status: 'pending',
+    })
+
+    const original = NotchPayService.retrievePayment
+
+    NotchPayService.retrievePayment = async (): Promise<NotchPayTransaction> => ({
+      id: payment.notchpayReference!,
+      reference: payment.orderReference,
+      amount: 80000,
+      currency: 'XAF',
+      status: 'complete',
+      created_at: '2026-10-16T11:00:00.000000Z',
+      completed_at: '2026-10-16T11:05:00.000000Z',
+    })
+
+    try {
+      const response = await client
+        .post('/api/v1/billing/confirm')
+        .loginAs(owner)
+        .json({ reference: payment.notchpayReference! })
+
+      response.assertStatus(200)
+      assert.isTrue((response.body() as { activated: boolean }).activated)
+    } finally {
+      NotchPayService.retrievePayment = original
+    }
+
+    organization = (await Organization.find(organization.id))!
+    const days = organization.planExpiresAt!.diff(DateTime.now(), 'days').days
+    assert.isTrue(Math.abs(days - 365) < 1)
 
     await cleanup(organization)
   })

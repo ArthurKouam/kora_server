@@ -7,6 +7,11 @@ import vine from '@vinejs/vine'
  */
 export const checkoutValidator = vine.create({
   planId: vine.string().uuid(),
+  /**
+   * Formule choisie. Le montant et la durée correspondants sont lus sur le
+   * plan côté serveur : ce champ ne fait que sélectionner une grille.
+   */
+  period: vine.enum(['monthly', 'yearly']).optional(),
   phone: vine
     .string()
     .trim()
