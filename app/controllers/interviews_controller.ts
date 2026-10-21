@@ -1,6 +1,7 @@
 import Application from '#models/application'
 import Interview from '#models/interview'
 import InterviewSlotRequest from '#models/interview_slot_request'
+import User from '#models/user'
 import Mailer from '#services/mailer'
 import InterviewTokenService from '#services/interview_token_service'
 import {
@@ -77,7 +78,22 @@ export default class InterviewsController {
     if (!application) return response.notFound({ error: 'Application not found' })
 
     const user = auth.use('web').getUserOrFail()
+    if (!user.organizationId) return response.forbidden({ error: 'No organization' })
     const payload = await request.validateUsing(createInterviewValidator)
+
+    // L'interviewer doit être un membre de l'organisation, mais son rôle est
+    // libre : n'importe qui peut être assigné, pas seulement `interviewer`.
+    if (payload.assignedTo) {
+      const assignee = await User.query()
+        .where('id', payload.assignedTo)
+        .where('organization_id', user.organizationId)
+        .first()
+      if (!assignee) {
+        return response.unprocessableEntity({
+          error: 'L’interviewer doit être membre de votre organisation.',
+        })
+      }
+    }
 
     const interview = await Interview.create({
       applicationId: application.id,
@@ -207,7 +223,20 @@ export default class InterviewsController {
 
     if (payload.notes !== undefined) interview.notes = payload.notes
     if (!notesOnly) {
+      if (payload.assignedTo) {
+        const assignee = await User.query()
+          .where('id', payload.assignedTo)
+          .where('organization_id', organizationId)
+          .first()
+        if (!assignee) {
+          return response.unprocessableEntity({
+            error: 'L’interviewer doit être membre de votre organisation.',
+          })
+        }
+      }
+
       if (payload.status !== undefined) interview.status = payload.status
+      if (payload.assignedTo !== undefined) interview.assignedTo = payload.assignedTo
       if (payload.scheduledAt !== undefined) interview.scheduledAt = DateTime.fromISO(payload.scheduledAt)
       if (payload.duration !== undefined) interview.duration = payload.duration
       if (payload.type !== undefined) interview.type = payload.type

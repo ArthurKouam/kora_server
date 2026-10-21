@@ -45,4 +45,6 @@ export const updateInterviewValidator = vine.create({
   type: vine.enum(['phone', 'video', 'onsite']).nullable().optional(),
   location: vine.string().trim().maxLength(255).nullable().optional(),
   meetingUrl: vine.string().trim().maxLength(500).nullable().optional(),
+  /** Réassignation de l'entretien (n'importe quel membre de l'organisation). */
+  assignedTo: vine.string().uuid().nullable().optional(),
 })
