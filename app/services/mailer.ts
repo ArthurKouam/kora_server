@@ -287,6 +287,46 @@ ${slotsHtml}`,
     })
   }
 
+  /**
+   * Notifie l'interviewer qu'un entretien vient de lui être assigné (ou
+   * réassigné). Distinct de l'invitation envoyée au candidat.
+   */
+  static async sendInterviewAssignment(options: {
+    to: string
+    interviewerFirstName: string | null
+    candidateName: string
+    jobTitle: string
+    organizationName: string
+    organizationId: string
+    applicationId: string
+    scheduledAtIso: string
+    timeZone: string
+    meetingOrLocation: string | null
+    appBaseUrl: string
+  }): Promise<boolean> {
+    const when = this.formatDateFr(options.scheduledAtIso, options.timeZone)
+    const greeting = options.interviewerFirstName
+      ? `Bonjour ${options.interviewerFirstName},`
+      : 'Bonjour,'
+    const link = `${options.appBaseUrl}/applications/${options.applicationId}`
+    const html = this.layout(`
+<h2>Un entretien vous a été assigné</h2>
+<p>${greeting}</p>
+<p>Vous êtes interviewer pour l'entretien de <strong>${options.candidateName}</strong>
+pour le poste <strong>${options.jobTitle}</strong> chez <strong>${options.organizationName}</strong>.</p>
+<p><strong>${when}</strong>${options.meetingOrLocation ? ` — ${options.meetingOrLocation}` : ''}</p>
+<p><a href="${link}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none;">Voir la candidature</a></p>
+`)
+    return this.send({
+      to: options.to,
+      subject: `Entretien assigné — ${options.jobTitle}`,
+      html,
+      organizationId: options.organizationId,
+      applicationId: options.applicationId,
+      type: 'custom',
+    })
+  }
+
   /** Réinitialisation du mot de passe — le staff appartient toujours à une organisation. */
   static async sendPasswordReset(options: {
     to: string

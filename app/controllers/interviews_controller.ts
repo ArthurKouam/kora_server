@@ -34,6 +34,7 @@ export default class InterviewsController {
       .preload('application', (applicationsQuery) =>
         applicationsQuery.preload('candidate').preload('job')
       )
+      .preload('assignee')
       .select('interviews.*')
       .orderBy('interviews.scheduled_at', 'desc')
       .limit(100)
@@ -50,6 +51,40 @@ export default class InterviewsController {
       .where('id', applicationId)
       .andWhereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
       .first()
+  }
+
+  /**
+   * Prévient l'interviewer assigné par email (création ou réassignation).
+   * L'envoi est journalisé par `Mailer` et n'échoue jamais la requête métier.
+   */
+  private async notifyAssignee(interview: Interview, assignee: User) {
+    if (!interview.scheduledAt) return
+
+    const application = await Application.find(interview.applicationId)
+    if (!application) return
+
+    const [candidate, job] = await Promise.all([
+      application.related('candidate').query().first(),
+      application.related('job').query().first(),
+    ])
+    const organization = job ? await job.related('organization').query().first() : null
+    if (!candidate || !job || !organization) return
+
+    const appBaseUrl = process.env.APP_URL?.replace(/\/$/, '') ?? ''
+    await Mailer.sendInterviewAssignment({
+      to: assignee.email,
+      interviewerFirstName: assignee.firstName,
+      candidateName:
+        `${candidate.firstName ?? ''} ${candidate.lastName ?? ''}`.trim() || candidate.email,
+      jobTitle: job.title,
+      organizationName: organization.name,
+      organizationId: organization.id,
+      applicationId: application.id,
+      scheduledAtIso: interview.scheduledAt.toISO()!,
+      timeZone: organization.timezone ?? 'Africa/Douala',
+      meetingOrLocation: interview.meetingUrl ?? interview.location ?? null,
+      appBaseUrl,
+    })
   }
 
   /**
@@ -83,8 +118,9 @@ export default class InterviewsController {
 
     // L'interviewer doit être un membre de l'organisation, mais son rôle est
     // libre : n'importe qui peut être assigné, pas seulement `interviewer`.
+    let assignee: User | null = null
     if (payload.assignedTo) {
-      const assignee = await User.query()
+      assignee = await User.query()
         .where('id', payload.assignedTo)
         .where('organization_id', user.organizationId)
         .first()
@@ -132,6 +168,10 @@ export default class InterviewsController {
           confirmToken,
         })
       }
+    }
+
+    if (assignee) {
+      await this.notifyAssignee(interview, assignee)
     }
 
     return response.created({ ...interview.serialize(), confirmToken })
@@ -221,14 +261,17 @@ export default class InterviewsController {
       notesOnly = true
     }
 
+    const previousAssignedTo = interview.assignedTo
+    let nextAssignee: User | null = null
+
     if (payload.notes !== undefined) interview.notes = payload.notes
     if (!notesOnly) {
       if (payload.assignedTo) {
-        const assignee = await User.query()
+        nextAssignee = await User.query()
           .where('id', payload.assignedTo)
           .where('organization_id', organizationId)
           .first()
-        if (!assignee) {
+        if (!nextAssignee) {
           return response.unprocessableEntity({
             error: 'L’interviewer doit être membre de votre organisation.',
           })
@@ -244,6 +287,10 @@ export default class InterviewsController {
       if (payload.meetingUrl !== undefined) interview.meetingUrl = payload.meetingUrl
     }
     await interview.save()
+
+    if (nextAssignee && nextAssignee.id !== previousAssignedTo) {
+      await this.notifyAssignee(interview, nextAssignee)
+    }
 
     return response.ok(interview)
   }

@@ -22,6 +22,7 @@ export interface UpcomingInterview {
   jobTitle: string
   scheduledAt: string
   type: string | null
+  assignedTo: string | null
   interviewerName: string | null
   applicationId: string
 }
@@ -153,7 +154,7 @@ export default class DashboardStatsService {
       .innerJoin('applications as a', 'a.id', 'i.application_id')
       .innerJoin('jobs as j', 'j.id', 'a.job_id')
       .innerJoin('candidates as c', 'c.id', 'a.candidate_id')
-      .leftJoin('users as u', 'u.id', 'i.created_by')
+      .leftJoin('users as u', 'u.id', 'i.assigned_to')
       .where('j.organization_id', organizationId)
       .where('i.scheduled_at', '>=', now)
       .where('i.scheduled_at', '<=', inOneWeek)
@@ -166,6 +167,9 @@ export default class DashboardStatsService {
         'j.title as jobTitle',
         'i.scheduled_at',
         'i.type',
+        'i.assigned_to',
+        'u.first_name as interviewerFirstName',
+        'u.last_name as interviewerLastName',
         'a.id as applicationId'
       )
 
@@ -175,7 +179,9 @@ export default class DashboardStatsService {
       jobTitle: row.jobTitle,
       scheduledAt: row.scheduled_at,
       type: row.type,
-      interviewerName: null,
+      assignedTo: row.assigned_to ?? null,
+      interviewerName:
+        `${row.interviewerFirstName || ''} ${row.interviewerLastName || ''}`.trim() || null,
       applicationId: row.applicationId,
     }))
   }
