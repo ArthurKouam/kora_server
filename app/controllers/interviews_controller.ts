@@ -1,6 +1,7 @@
 import Application from '#models/application'
 import Interview from '#models/interview'
 import InterviewSlotRequest from '#models/interview_slot_request'
+import User from '#models/user'
 import Mailer from '#services/mailer'
 import InterviewTokenService from '#services/interview_token_service'
 import {
@@ -33,6 +34,7 @@ export default class InterviewsController {
       .preload('application', (applicationsQuery) =>
         applicationsQuery.preload('candidate').preload('job')
       )
+      .preload('assignee')
       .select('interviews.*')
       .orderBy('interviews.scheduled_at', 'desc')
       .limit(100)
@@ -49,6 +51,40 @@ export default class InterviewsController {
       .where('id', applicationId)
       .andWhereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
       .first()
+  }
+
+  /**
+   * Prévient l'interviewer assigné par email (création ou réassignation).
+   * L'envoi est journalisé par `Mailer` et n'échoue jamais la requête métier.
+   */
+  private async notifyAssignee(interview: Interview, assignee: User) {
+    if (!interview.scheduledAt) return
+
+    const application = await Application.find(interview.applicationId)
+    if (!application) return
+
+    const [candidate, job] = await Promise.all([
+      application.related('candidate').query().first(),
+      application.related('job').query().first(),
+    ])
+    const organization = job ? await job.related('organization').query().first() : null
+    if (!candidate || !job || !organization) return
+
+    const appBaseUrl = process.env.APP_URL?.replace(/\/$/, '') ?? ''
+    await Mailer.sendInterviewAssignment({
+      to: assignee.email,
+      interviewerFirstName: assignee.firstName,
+      candidateName:
+        `${candidate.firstName ?? ''} ${candidate.lastName ?? ''}`.trim() || candidate.email,
+      jobTitle: job.title,
+      organizationName: organization.name,
+      organizationId: organization.id,
+      applicationId: application.id,
+      scheduledAtIso: interview.scheduledAt.toISO()!,
+      timeZone: organization.timezone ?? 'Africa/Douala',
+      meetingOrLocation: interview.meetingUrl ?? interview.location ?? null,
+      appBaseUrl,
+    })
   }
 
   /**
@@ -77,7 +113,23 @@ export default class InterviewsController {
     if (!application) return response.notFound({ error: 'Application not found' })
 
     const user = auth.use('web').getUserOrFail()
+    if (!user.organizationId) return response.forbidden({ error: 'No organization' })
     const payload = await request.validateUsing(createInterviewValidator)
+
+    // L'interviewer doit être un membre de l'organisation, mais son rôle est
+    // libre : n'importe qui peut être assigné, pas seulement `interviewer`.
+    let assignee: User | null = null
+    if (payload.assignedTo) {
+      assignee = await User.query()
+        .where('id', payload.assignedTo)
+        .where('organization_id', user.organizationId)
+        .first()
+      if (!assignee) {
+        return response.unprocessableEntity({
+          error: 'L’interviewer doit être membre de votre organisation.',
+        })
+      }
+    }
 
     const interview = await Interview.create({
       applicationId: application.id,
@@ -116,6 +168,10 @@ export default class InterviewsController {
           confirmToken,
         })
       }
+    }
+
+    if (assignee) {
+      await this.notifyAssignee(interview, assignee)
     }
 
     return response.created({ ...interview.serialize(), confirmToken })
@@ -205,9 +261,25 @@ export default class InterviewsController {
       notesOnly = true
     }
 
+    const previousAssignedTo = interview.assignedTo
+    let nextAssignee: User | null = null
+
     if (payload.notes !== undefined) interview.notes = payload.notes
     if (!notesOnly) {
+      if (payload.assignedTo) {
+        nextAssignee = await User.query()
+          .where('id', payload.assignedTo)
+          .where('organization_id', organizationId)
+          .first()
+        if (!nextAssignee) {
+          return response.unprocessableEntity({
+            error: 'L’interviewer doit être membre de votre organisation.',
+          })
+        }
+      }
+
       if (payload.status !== undefined) interview.status = payload.status
+      if (payload.assignedTo !== undefined) interview.assignedTo = payload.assignedTo
       if (payload.scheduledAt !== undefined) interview.scheduledAt = DateTime.fromISO(payload.scheduledAt)
       if (payload.duration !== undefined) interview.duration = payload.duration
       if (payload.type !== undefined) interview.type = payload.type
@@ -215,6 +287,10 @@ export default class InterviewsController {
       if (payload.meetingUrl !== undefined) interview.meetingUrl = payload.meetingUrl
     }
     await interview.save()
+
+    if (nextAssignee && nextAssignee.id !== previousAssignedTo) {
+      await this.notifyAssignee(interview, nextAssignee)
+    }
 
     return response.ok(interview)
   }
