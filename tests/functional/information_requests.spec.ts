@@ -233,6 +233,52 @@ test.group('Application information requests', (group) => {
     forbidden.assertStatus(403)
   })
 
+  test('lets interviewers read requests without letting them manage them', async ({ client }) => {
+    const { organization, application, user } = await fixtures()
+    const interviewer = await User.create({
+      organizationId: organization.id,
+      email: `interviewer-${randomUUID()}@example.test`,
+      password: 'not-used-in-tests',
+      role: 'interviewer',
+    })
+    QueueManager.fake()
+    const item = await createRequest({
+      organizationId: organization.id,
+      applicationId: application.id,
+      requestedBy: user.id,
+    })
+
+    const list = await client
+      .get(`/api/v1/dashboard/applications/${application.id}/information-requests`)
+      .loginAs(interviewer)
+    list.assertStatus(200)
+
+    const show = await client
+      .get(`/api/v1/dashboard/applications/${application.id}/information-requests/${item.row.id}`)
+      .loginAs(interviewer)
+    show.assertStatus(200)
+
+    const create = await client
+      .post(`/api/v1/dashboard/applications/${application.id}/information-requests`)
+      .loginAs(interviewer)
+      .json({ fields: [textField] })
+    create.assertStatus(403)
+
+    const resend = await client
+      .post(
+        `/api/v1/dashboard/applications/${application.id}/information-requests/${item.row.id}/resend`
+      )
+      .loginAs(interviewer)
+    resend.assertStatus(403)
+
+    const cancel = await client
+      .post(
+        `/api/v1/dashboard/applications/${application.id}/information-requests/${item.row.id}/cancel`
+      )
+      .loginAs(interviewer)
+    cancel.assertStatus(403)
+  })
+
   test('returns the contracted public states and context without exposing submitted answers', async ({
     client,
   }) => {
