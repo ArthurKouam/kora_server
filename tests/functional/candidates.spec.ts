@@ -23,6 +23,8 @@ async function fixtures() {
     email: `candidate-${suffix}@example.test`,
     firstName: 'Marie',
     lastName: 'Dupont',
+    city: 'Douala',
+    country: 'Cameroun',
   })
   const job = await Job.create({
     organizationId: organization.id,
@@ -88,5 +90,96 @@ test.group('Candidate detail', (group) => {
     const body = response.body() as { talentPool: { id: string; status: string } | null }
     assert.equal(body.talentPool?.id, entry.id)
     assert.equal(body.talentPool?.status, 'active')
+  })
+})
+
+test.group('Candidate index', (group) => {
+  group.each.setup(async () => {
+    const rollback = await testUtils.db().withGlobalTransaction()
+    await limiter.clear(['memory'])
+    return rollback
+  })
+
+  test('exposes application titles and filter options', async ({ client, assert }) => {
+    const { user, job } = await fixtures()
+
+    const response = await client.get('/api/v1/dashboard/candidates').loginAs(user)
+
+    response.assertStatus(200)
+    const body = response.body() as {
+      data: Array<{
+        applicationsCount: number
+        applications: Array<{ jobId: string; jobTitle: string | null }>
+      }>
+      meta: {
+        filters: {
+          jobs: Array<{ id: string; title: string }>
+          locations: Array<{ city: string | null; country: string | null; label: string }>
+        }
+      }
+    }
+
+    assert.lengthOf(body.data, 1)
+    assert.equal(body.data[0].applicationsCount, 1)
+    assert.equal(body.data[0].applications[0].jobId, job.id)
+    assert.equal(body.data[0].applications[0].jobTitle, job.title)
+    assert.lengthOf(body.meta.filters.jobs, 1)
+    assert.equal(body.meta.filters.jobs[0].id, job.id)
+    assert.deepEqual(body.meta.filters.locations[0], {
+      city: 'Douala',
+      country: 'Cameroun',
+      label: 'Douala, Cameroun',
+    })
+  })
+
+  test('filters by job, location and search', async ({ client, assert }) => {
+    const { organization, user, candidate, job } = await fixtures()
+    const suffix = randomUUID()
+
+    const otherJob = await Job.create({
+      organizationId: organization.id,
+      createdBy: user.id,
+      title: 'Designer',
+      slug: `designer-${suffix}`,
+      status: 'published',
+      headcount: 1,
+    })
+    const otherCandidate = await Candidate.create({
+      email: `other-${suffix}@example.test`,
+      firstName: 'Jean',
+      lastName: 'Martin',
+      city: 'Yaoundé',
+      country: 'Cameroun',
+    })
+    await Application.create({
+      jobId: otherJob.id,
+      candidateId: otherCandidate.id,
+      status: 'new',
+      appliedAt: DateTime.now(),
+    })
+
+    const byJob = await client
+      .get(`/api/v1/dashboard/candidates?jobId=${job.id}`)
+      .loginAs(user)
+    byJob.assertStatus(200)
+    const byJobBody = byJob.body() as { data: Array<{ id: string }> }
+    assert.lengthOf(byJobBody.data, 1)
+    assert.equal(byJobBody.data[0].id, candidate.id)
+
+    const byLocation = await client
+      .get(`/api/v1/dashboard/candidates?city=${encodeURIComponent('Yaoundé')}`)
+      .loginAs(user)
+    byLocation.assertStatus(200)
+    const byLocationBody = byLocation.body() as { data: Array<{ id: string }> }
+    assert.lengthOf(byLocationBody.data, 1)
+    assert.equal(byLocationBody.data[0].id, otherCandidate.id)
+
+    const bySearch = await client
+      .get('/api/v1/dashboard/candidates?search=Jean')
+      .loginAs(user)
+    bySearch.assertStatus(200)
+    const bySearchBody = bySearch.body() as { data: Array<{ id: string }> }
+    assert.lengthOf(bySearchBody.data, 1)
+    assert.equal(bySearchBody.data[0].id, otherCandidate.id)
   })
 })
