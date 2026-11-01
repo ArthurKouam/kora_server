@@ -232,26 +232,40 @@ router
             middleware.activeSubscription({ write: ['applications.pipeline'] }),
           ])
 
+        /**
+         * La lecture reste ouverte à tout membre de l'organisation : un
+         * interviewer a besoin de ce contexte pour préparer l'entretien, et la
+         * fiche candidature charge ces données au rendu. Seules les actions
+         * (création, relance, annulation) exigent la permission dédiée.
+         */
         router
           .group(() => {
             router
               .post('/', [InformationRequestsController, 'create'])
-              .use(middleware.activeSubscription({ write: ['applications.request_information'] }))
+              .use([
+                middleware.permission({ permission: ['applications.request_information'] }),
+                middleware.activeSubscription({ write: ['applications.request_information'] }),
+              ])
             router.get('/', [InformationRequestsController, 'list'])
             router.get('/:requestId', [InformationRequestsController, 'show'])
             router
               .post('/:requestId/resend', [InformationRequestsController, 'resend'])
-              .use(middleware.activeSubscription({ write: ['applications.request_information'] }))
+              .use([
+                middleware.permission({ permission: ['applications.request_information'] }),
+                middleware.activeSubscription({ write: ['applications.request_information'] }),
+              ])
             router
               .post('/:requestId/cancel', [InformationRequestsController, 'cancel'])
-              .use(middleware.activeSubscription({ write: ['applications.request_information'] }))
+              .use([
+                middleware.permission({ permission: ['applications.request_information'] }),
+                middleware.activeSubscription({ write: ['applications.request_information'] }),
+              ])
             router.get('/:requestId/documents/:documentId', [
               InformationRequestsController,
               'downloadDocument',
             ])
           })
           .prefix('applications/:id/information-requests')
-          .use(middleware.permission({ permission: ['applications.request_information'] }))
 
         router
           .group(() => {
