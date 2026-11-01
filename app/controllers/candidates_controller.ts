@@ -1,11 +1,17 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Candidate from '#models/candidate'
+import Job from '#models/job'
 import TalentPoolEntry from '#models/talent_pool_entry'
+import { candidateIndexValidator } from '#validators/candidate'
 
 export default class CandidatesController {
   /**
    * GET /candidates
    * Retourne les candidats ayant postulé à au moins une offre de l'organisation.
+   *
+   * La liste alimente l'annuaire global : recherche, filtre par poste, filtre
+   * par localisation et tri par dernière activité. Les options de filtre sont
+   * renvoyées avec la pagination pour éviter un second aller-retour côté UI.
    */
   async index({ auth, request, response }: HttpContext) {
     const user = auth.use('web').getUserOrFail()
@@ -17,6 +23,13 @@ export default class CandidatesController {
       return response.forbidden({ error: 'User does not belong to any organization' })
     }
 
+    const payload = await request.validateUsing(candidateIndexValidator)
+    const page = payload.page ?? 1
+    const limit = payload.limit ?? 20
+    const sort = payload.sort ?? 'last_activity_desc'
+    const search = payload.search ?? null
+    const jobId = payload.jobId ?? null
+
     const query = Candidate.query()
       .whereHas('applications', (applicationsQuery) =>
         applicationsQuery.whereHas('job', (jobsQuery) =>
@@ -26,11 +39,9 @@ export default class CandidatesController {
       .preload('applications', (applicationsQuery) =>
         applicationsQuery
           .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
+          .preload('job', (jobsQuery) => jobsQuery.select('id', 'title'))
           .orderBy('updated_at', 'desc')
       )
-      .orderBy('updated_at', 'desc')
-
-    const { page = 1, limit = 20, search } = request.qs()
 
     if (search) {
       query.where((candidatesQuery) => {
@@ -41,10 +52,74 @@ export default class CandidatesController {
       })
     }
 
-    const candidates = await query.paginate(page, limit)
+    if (jobId) {
+      query.whereHas('applications', (applicationsQuery) => {
+        applicationsQuery
+          .where('job_id', jobId)
+          .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
+      })
+    }
+
+    if (payload.city) {
+      query.where('city', payload.city)
+    }
+
+    if (payload.country) {
+      query.where('country', payload.country)
+    }
+
+    if (sort === 'name_asc') {
+      query.orderBy('last_name', 'asc').orderBy('first_name', 'asc')
+    } else {
+      /**
+       * La date affichée est celle de la dernière candidature, pas celle du
+       * profil candidat : un candidat recontacté récemment doit remonter même
+       * si sa fiche n'a pas été modifiée.
+       */
+      const direction = sort === 'last_activity_asc' ? 'asc' : 'desc'
+      query.orderByRaw(
+        `(
+          SELECT MAX(COALESCE(applications.updated_at, applications.applied_at))
+          FROM applications
+          INNER JOIN jobs ON jobs.id = applications.job_id
+          WHERE applications.candidate_id = candidates.id
+            AND jobs.organization_id = ?
+        ) ${direction}`,
+        [organizationId]
+      )
+    }
+
+    const [candidates, jobs, locations] = await Promise.all([
+      query.paginate(page, limit),
+      Job.query()
+        .where('organization_id', organizationId)
+        .select('id', 'title')
+        .orderBy('title', 'asc'),
+      Candidate.query()
+        .whereHas('applications', (applicationsQuery) =>
+          applicationsQuery.whereHas('job', (jobsQuery) =>
+            jobsQuery.where('organization_id', organizationId)
+          )
+        )
+        .where((candidatesQuery) => {
+          candidatesQuery.whereNotNull('city').orWhereNotNull('country')
+        })
+        .select('city', 'country')
+        .groupBy('city', 'country')
+        .orderBy('country', 'asc')
+        .orderBy('city', 'asc'),
+    ])
 
     return response.ok({
       data: candidates.all().map((candidate) => {
+        const applications = candidate.applications.map((application) => ({
+          id: application.id,
+          jobId: application.jobId,
+          jobTitle: application.job?.title ?? null,
+          status: application.status,
+          appliedAt: application.appliedAt,
+          updatedAt: application.updatedAt,
+        }))
         const latestApplication = candidate.applications[0]
 
         return {
@@ -56,7 +131,8 @@ export default class CandidatesController {
           location: candidate.location,
           city: candidate.city,
           country: candidate.country,
-          applicationsCount: candidate.applications.length,
+          applicationsCount: applications.length,
+          applications,
           lastActivity:
             latestApplication?.updatedAt ??
             latestApplication?.appliedAt ??
@@ -64,7 +140,17 @@ export default class CandidatesController {
             candidate.createdAt,
         }
       }),
-      meta: candidates.getMeta(),
+      meta: {
+        ...candidates.getMeta(),
+        filters: {
+          jobs: jobs.map((job) => ({ id: job.id, title: job.title })),
+          locations: locations.map((location) => ({
+            city: location.city,
+            country: location.country,
+            label: [location.city, location.country].filter(Boolean).join(', '),
+          })),
+        },
+      },
     })
   }
 
