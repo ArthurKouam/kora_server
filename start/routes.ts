@@ -298,10 +298,19 @@ router
             middleware.activeSubscription({ write: ['interviews.schedule'] }),
           ])
         router.get('interviews', [controllers.Interviews, 'indexAll'])
+        /**
+         * Le contrôleur distingue deux chemins : les rôles pipeline modifient
+         * tout l'entretien (`interviews.update`), l'interviewer assigné n'y
+         * dépose que ses notes (`interviews.feedback`, Bouncer). Le middleware
+         * doit donc accepter les deux permissions, sinon le second chemin est
+         * inatteignable.
+         */
         router
           .put('interviews/:id', [controllers.Interviews, 'update'])
           .use([
-            middleware.permission({ permission: ['interviews.update'] }),
+            middleware.permission({
+              permission: ['interviews.update', 'interviews.feedback'],
+            }),
             middleware.activeSubscription({ write: ['interviews.update'] }),
           ])
 
