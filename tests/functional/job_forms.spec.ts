@@ -15,7 +15,7 @@ import { randomUUID } from 'node:crypto'
  */
 
 const FIELDS = {
-  fields: [{ id: 'f_demo00001', type: 'text', label: 'Pourquoi ce poste ?', required: true }],
+  fields: [{ id: 'f_demo00000001', type: 'text', label: 'Pourquoi ce poste ?', required: true }],
 }
 
 async function orgWithUser(role = 'owner') {
