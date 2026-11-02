@@ -48,6 +48,9 @@ export const PERMISSIONS = [
   // Organisation
   'settings.org',
 
+  // Facturation (paiements, checkout, export global)
+  'billing.manage',
+
   // Futur
   'team.invite',
 ] as const

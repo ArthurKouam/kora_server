@@ -259,6 +259,27 @@ export default class InterviewsController {
     } else {
       await bouncer.with(InterviewPolicy).authorize('updateFeedback', interview)
       notesOnly = true
+
+      /**
+       * L'interviewer ne dépose que son feedback : accepter silencieusement un
+       * statut ou une réassignation puis les ignorer donnerait une fausse
+       * confirmation au client.
+       */
+      const forbiddenKeys = [
+        'status',
+        'assignedTo',
+        'scheduledAt',
+        'duration',
+        'type',
+        'location',
+        'meetingUrl',
+      ] as const
+      const attempted = forbiddenKeys.filter((key) => payload[key] !== undefined)
+      if (attempted.length > 0) {
+        return response.forbidden({
+          error: 'Un interviewer ne peut modifier que ses notes d’entretien.',
+        })
+      }
     }
 
     const previousAssignedTo = interview.assignedTo

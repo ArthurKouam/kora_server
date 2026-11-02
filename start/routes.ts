@@ -92,6 +92,18 @@ router
     router
       .group(() => {
         router.get('subscription', [controllers.Billing, 'subscription'])
+      })
+      .prefix('billing')
+      .use(middleware.auth())
+
+    /**
+     * Tout ce qui engage l'organisation (paiements, checkout, export global)
+     * est réservé aux owner/admin via `billing.manage`. `/subscription` reste
+     * hors de ce groupe : la sidebar et le vivier de talents en ont besoin
+     * pour tous les rôles.
+     */
+    router
+      .group(() => {
         router.get('payments', [controllers.Billing, 'payments'])
         router.get('payments/:reference', [controllers.Billing, 'showPayment'])
         router.get('applications/export', [controllers.Billing, 'exportApplications'])
@@ -100,6 +112,7 @@ router
       })
       .prefix('billing')
       .use(middleware.auth())
+      .use(middleware.permission({ permission: ['billing.manage'] }))
 
     router
       .group(() => {
@@ -285,10 +298,19 @@ router
             middleware.activeSubscription({ write: ['interviews.schedule'] }),
           ])
         router.get('interviews', [controllers.Interviews, 'indexAll'])
+        /**
+         * Le contrôleur distingue deux chemins : les rôles pipeline modifient
+         * tout l'entretien (`interviews.update`), l'interviewer assigné n'y
+         * dépose que ses notes (`interviews.feedback`, Bouncer). Le middleware
+         * doit donc accepter les deux permissions, sinon le second chemin est
+         * inatteignable.
+         */
         router
           .put('interviews/:id', [controllers.Interviews, 'update'])
           .use([
-            middleware.permission({ permission: ['interviews.update'] }),
+            middleware.permission({
+              permission: ['interviews.update', 'interviews.feedback'],
+            }),
             middleware.activeSubscription({ write: ['interviews.update'] }),
           ])
 

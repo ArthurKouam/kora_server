@@ -1028,3 +1028,111 @@ test.group('Billing — export CSV', () => {
     await cleanup(organization)
   })
 })
+
+/**
+ * Facturation : seuls owner et admin engagent l'organisation. L'abonnement
+ * reste lisible par tous les rôles (sidebar, vivier de talents), mais les
+ * paiements, le checkout, la confirmation et l'export global sont réservés.
+ */
+test.group('Billing — accès réservé aux owner/admin', () => {
+  const RESTRICTED_ROLES = ['recruiter', 'hiring_manager', 'interviewer'] as const
+
+  async function orgWithAllRoles() {
+    const { organization, owner } = await orgWithPlan('plus')
+    const suffix = randomUUID().replace(/-/g, '')
+
+    const users: Record<string, User> = { owner }
+    for (const role of ['admin', ...RESTRICTED_ROLES] as const) {
+      users[role] = await User.create({
+        organizationId: organization.id,
+        email: `${role}-${suffix}@example.test`,
+        password: 'Motdepasse2026!',
+        role,
+      })
+    }
+
+    return { organization, users }
+  }
+
+  test('l’abonnement reste lisible par tous les rôles', async ({ client }) => {
+    const { organization, users } = await orgWithAllRoles()
+
+    for (const user of Object.values(users)) {
+      const response = await client.get('/api/v1/billing/subscription').loginAs(user)
+      response.assertStatus(200)
+    }
+
+    await cleanup(organization)
+  })
+
+  test('les paiements sont réservés aux owner et admin', async ({ client, assert }) => {
+    const { organization, users } = await orgWithAllRoles()
+
+    for (const role of ['owner', 'admin'] as const) {
+      const response = await client.get('/api/v1/billing/payments').loginAs(users[role])
+      response.assertStatus(200)
+    }
+
+    for (const role of RESTRICTED_ROLES) {
+      const response = await client.get('/api/v1/billing/payments').loginAs(users[role])
+      response.assertStatus(403)
+      assert.equal(errorBody(response).error, 'Insufficient permissions')
+    }
+
+    await cleanup(organization)
+  })
+
+  test('l’export des candidatures est réservé aux owner et admin', async ({ client }) => {
+    const { organization, users } = await orgWithAllRoles()
+
+    for (const role of ['owner', 'admin'] as const) {
+      const response = await client
+        .get('/api/v1/billing/applications/export')
+        .loginAs(users[role])
+      response.assertStatus(200)
+      response.assertHeader('content-type', 'text/csv; charset=utf-8')
+    }
+
+    for (const role of RESTRICTED_ROLES) {
+      const response = await client
+        .get('/api/v1/billing/applications/export')
+        .loginAs(users[role])
+      response.assertStatus(403)
+    }
+
+    await cleanup(organization)
+  })
+
+  test('checkout et confirm sont refusés avant même la validation', async ({ client }) => {
+    const { organization, users } = await orgWithAllRoles()
+
+    for (const role of RESTRICTED_ROLES) {
+      const checkout = await client
+        .post('/api/v1/billing/checkout')
+        .loginAs(users[role])
+        .json({ planId: 'not-a-uuid' })
+      checkout.assertStatus(403)
+
+      const confirm = await client
+        .post('/api/v1/billing/confirm')
+        .loginAs(users[role])
+        .json({ reference: 'x' })
+      confirm.assertStatus(403)
+    }
+
+    // Le middleware laisse passer owner/admin : la validation prend le relais.
+    const adminCheckout = await client
+      .post('/api/v1/billing/checkout')
+      .loginAs(users.admin)
+      .json({ planId: 'not-a-uuid' })
+    adminCheckout.assertStatus(422)
+
+    const adminConfirm = await client
+      .post('/api/v1/billing/confirm')
+      .loginAs(users.admin)
+      .json({ reference: 'x' })
+    adminConfirm.assertStatus(422)
+
+    await cleanup(organization)
+  })
+})
