@@ -18,6 +18,19 @@ import { test } from '@japa/runner'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
 
+/**
+ * `response.body()` est typé sur l'union des réponses possibles de la route.
+ * On vérifie la forme à l'exécution avant de lire le code d'erreur, plutôt que
+ * de forcer un cast que TypeScript refuse.
+ */
+function errorBody(response: { body(): unknown }): { error: string; code?: string } {
+  const body = response.body()
+  if (body === null || typeof body !== 'object' || !('error' in body)) {
+    throw new Error(`Réponse sans champ "error" : ${JSON.stringify(body)}`)
+  }
+  return body as { error: string; code?: string }
+}
+
 async function fixtures(role = 'owner') {
   const suffix = randomUUID()
   const organization = await Organization.create({
@@ -131,7 +144,7 @@ test.group('Team invitations', (group) => {
       .json({ email: 'refuse@example.test', role: 'recruiter' })
 
     response.assertStatus(402)
-    const body = response.body() as { code: string; error: string }
+    const body = errorBody(response)
     assert.equal(body.code, 'member_quota_reached')
     assert.include(body.error, '1 membre')
 
