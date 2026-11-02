@@ -92,6 +92,18 @@ router
     router
       .group(() => {
         router.get('subscription', [controllers.Billing, 'subscription'])
+      })
+      .prefix('billing')
+      .use(middleware.auth())
+
+    /**
+     * Tout ce qui engage l'organisation (paiements, checkout, export global)
+     * est réservé aux owner/admin via `billing.manage`. `/subscription` reste
+     * hors de ce groupe : la sidebar et le vivier de talents en ont besoin
+     * pour tous les rôles.
+     */
+    router
+      .group(() => {
         router.get('payments', [controllers.Billing, 'payments'])
         router.get('payments/:reference', [controllers.Billing, 'showPayment'])
         router.get('applications/export', [controllers.Billing, 'exportApplications'])
@@ -100,6 +112,7 @@ router
       })
       .prefix('billing')
       .use(middleware.auth())
+      .use(middleware.permission({ permission: ['billing.manage'] }))
 
     router
       .group(() => {
