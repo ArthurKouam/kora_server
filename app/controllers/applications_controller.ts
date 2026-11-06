@@ -2,7 +2,7 @@ import Application from '#models/application'
 import ApplicationStatusHistory from '#models/application_status_history'
 import CandidateDocument from '#models/candidate_document'
 import TalentPoolEntry from '#models/talent_pool_entry'
-import drive from '@adonisjs/drive/services/main'
+import { streamCandidateDocument } from '#services/document_download'
 import Mailer from '#services/mailer'
 import { updateApplicationStatusValidator } from '#validators/application'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -174,15 +174,6 @@ export default class ApplicationsController {
       return response.notFound({ error: 'Document not found' })
     }
 
-    try {
-      const stream = await drive.use().getStream(document.filePath)
-      response.header('content-type', document.mimeType ?? 'application/octet-stream')
-      // L'app affiche le document en aperçu intégré dans un iframe de même
-      // origine : on assouplit le X-Frame-Options global (DENY) pour ce flux.
-      response.header('x-frame-options', 'SAMEORIGIN')
-      return response.stream(stream)
-    } catch {
-      return response.notFound({ error: 'File missing from storage' })
-    }
+    return streamCandidateDocument(response, document)
   }
 }

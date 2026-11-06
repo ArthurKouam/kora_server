@@ -6,7 +6,7 @@ import CandidateDocument from '#models/candidate_document'
 import Job from '#models/job'
 import Organization from '#models/organization'
 import PendingApplication from '#models/pending_application'
-import FileStorage from '#services/file_storage'
+import FileStorage, { UnsupportedFileTypeError } from '#services/file_storage'
 import OtpService from '#services/otp_service'
 import Mailer from '#services/mailer'
 import { validateAnswers } from '#services/form_answers_validator'
@@ -312,17 +312,25 @@ export default class CareerController {
         })
       }
       if (cvFile?.isValid) {
-        const stored = await FileStorage.store(cvFile, 'cvs')
-        const document = await CandidateDocument.create({
-          candidateId: candidate.id,
-          type: 'cv',
-          name: stored.name,
-          filePath: stored.key,
-          mimeType: stored.mimeType,
-          fileSize: stored.size,
-        })
-        cvDocumentId = document.id
-        uploadedDocumentIds.push(document.id)
+        try {
+          const stored = await FileStorage.store(cvFile, 'cvs')
+          const document = await CandidateDocument.create({
+            candidateId: candidate.id,
+            type: 'cv',
+            name: stored.name,
+            filePath: stored.key,
+            mimeType: stored.mimeType,
+            fileSize: stored.size,
+          })
+          cvDocumentId = document.id
+          uploadedDocumentIds.push(document.id)
+        } catch (error) {
+          if (!(error instanceof UnsupportedFileTypeError)) throw error
+          await Promise.all(uploadedDocumentIds.map((id) => this.deleteDocument(id)))
+          return response.unprocessableEntity({
+            errors: { cv: 'Le contenu du fichier CV ne correspond pas à un format autorisé.' },
+          })
+        }
       }
 
       for (const field of definition.fields) {
@@ -339,19 +347,18 @@ export default class CareerController {
             errors: { [field.id]: 'Fichier invalide ou trop volumineux.' },
           })
         }
-        const mimeType = file.headers?.['content-type'] ?? null
-        // Même garde-fou que dans information_requests_controller : si le recruteur a
-        // restreint les types acceptés, le content-type reçu doit y figurer.
-        if (
-          field.config?.accept?.length &&
-          (!mimeType || !field.config.accept.includes(mimeType))
-        ) {
+        let stored
+        try {
+          stored = await FileStorage.store(file, 'application-documents', {
+            allowedMimeTypes: field.config?.accept,
+          })
+        } catch (error) {
+          if (!(error instanceof UnsupportedFileTypeError)) throw error
           await Promise.all(uploadedDocumentIds.map((id) => this.deleteDocument(id)))
           return response.unprocessableEntity({
-            errors: { [field.id]: 'Type de fichier non autorisé.' },
+            errors: { [field.id]: 'Le contenu du fichier ne correspond pas à un format autorisé.' },
           })
         }
-        const stored = await FileStorage.store(file, 'application-documents')
         const document = await CandidateDocument.create({
           candidateId: candidate.id,
           type: 'other',

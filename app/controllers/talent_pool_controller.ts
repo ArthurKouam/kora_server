@@ -22,7 +22,7 @@ import {
 } from '#validators/talent_pool'
 import type { HttpContext } from '@adonisjs/core/http'
 import type Organization from '#models/organization'
-import drive from '@adonisjs/drive/services/main'
+import { streamCandidateDocument } from '#services/document_download'
 import { DateTime } from 'luxon'
 
 type SqlError = Error & { code?: string; constraint?: string }
@@ -453,13 +453,7 @@ export default class TalentPoolController {
 
     if (!document) return response.notFound({ error: 'Document not found' })
 
-    try {
-      const stream = await drive.use().getStream(document.filePath)
-      response.header('content-type', document.mimeType ?? 'application/octet-stream')
-      return response.stream(stream)
-    } catch {
-      return response.notFound({ error: 'File missing from storage' })
-    }
+    return streamCandidateDocument(response, document)
   }
 
   // ── helpers ────────────────────────────────────────────────────────────

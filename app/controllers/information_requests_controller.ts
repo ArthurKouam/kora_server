@@ -3,7 +3,8 @@ import SendInformationResponseNotification from '#jobs/send_information_response
 import Application from '#models/application'
 import ApplicationInformationRequest from '#models/application_information_request'
 import CandidateDocument from '#models/candidate_document'
-import FileStorage from '#services/file_storage'
+import FileStorage, { UnsupportedFileTypeError } from '#services/file_storage'
+import { streamCandidateDocument } from '#services/document_download'
 import { validateAnswers } from '#services/form_answers_validator'
 import { validateFormDefinition } from '#services/form_definition_validator'
 import {
@@ -17,7 +18,6 @@ import {
   submitInformationRequestValidator,
 } from '#validators/information_request'
 import type { HttpContext } from '@adonisjs/core/http'
-import drive from '@adonisjs/drive/services/main'
 import { DateTime } from 'luxon'
 
 type SqlError = Error & { code?: string; constraint?: string }
@@ -313,17 +313,13 @@ export default class InformationRequestsController {
           await this.deleteStoredFiles(storedFiles)
           return response.unprocessableEntity({ errors: { [field.id]: 'Invalid file' } })
         }
-        const mimeType = file.headers?.['content-type'] ?? null
-        if (
-          field.config?.accept?.length &&
-          (!mimeType || !field.config.accept.includes(mimeType))
-        ) {
+        const stored = await this.storeFile(file, field)
+        if (stored instanceof UnsupportedFileTypeError) {
           await this.deleteStoredFiles(storedFiles)
           return response.unprocessableEntity({
             errors: { [field.id]: 'File type is not allowed' },
           })
         }
-        const stored = await FileStorage.store(file, 'application-documents')
         storedFiles.push({ fieldId: field.id, ...stored })
         answers[field.id] = { documentId: '__pending__' }
       }
@@ -408,6 +404,22 @@ export default class InformationRequestsController {
     await Promise.allSettled(files.map((file) => FileStorage.delete(file.key)))
   }
 
+  /**
+   * Stocke un fichier après détection de son type réel. Retourne l'erreur
+   * plutôt que de la laisser remonter pour que l'appelant nettoie les fichiers
+   * déjà écrits et réponde en 422.
+   */
+  private async storeFile(file: Parameters<typeof FileStorage.store>[0], field: FieldDefinition) {
+    try {
+      return await FileStorage.store(file, 'application-documents', {
+        allowedMimeTypes: field.config?.accept,
+      })
+    } catch (error) {
+      if (error instanceof UnsupportedFileTypeError) return error
+      throw error
+    }
+  }
+
   async downloadDocument({ auth, params, response }: HttpContext) {
     const user = auth.use('web').getUserOrFail()
     if (!user.organizationId) {
@@ -435,12 +447,6 @@ export default class InformationRequestsController {
       .first()
     if (!document) return response.notFound({ error: 'Document not found' })
 
-    try {
-      const stream = await drive.use().getStream(document.filePath)
-      response.header('content-type', document.mimeType ?? 'application/octet-stream')
-      return response.stream(stream)
-    } catch {
-      return response.notFound({ error: 'File missing from storage' })
-    }
+    return streamCandidateDocument(response, document)
   }
 }

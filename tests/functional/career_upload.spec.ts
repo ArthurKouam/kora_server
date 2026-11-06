@@ -10,6 +10,7 @@ import FileStorage from '#services/file_storage'
 import ExpirePendingApplications from '#jobs/expire_pending_applications'
 import drive from '@adonisjs/drive/services/main'
 import db from '@adonisjs/lucid/services/db'
+import limiter from '@adonisjs/limiter/services/main'
 import { test } from '@japa/runner'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
@@ -70,7 +71,9 @@ const pdf = {
   contentType: 'application/pdf',
 }
 
-test.group('Career upload — validation des fichiers', () => {
+test.group('Career upload — validation des fichiers', (group) => {
+  group.each.setup(() => limiter.clear(['memory']))
+
   test('accepte un CV et enregistre le document', async ({ client, assert }) => {
     const { org, job } = await fixtures()
     const email = `ok-${randomUUID()}@example.test`
@@ -218,6 +221,69 @@ test.group('Career upload — validation des fichiers', () => {
 
     await FileStorage.delete(document.filePath)
     await document.delete()
+  })
+
+  test('rejette un CV dont le contenu ne correspond pas au type annoncé', async ({
+    client,
+    assert,
+  }) => {
+    const { org, job } = await fixtures()
+    const email = `html-${randomUUID()}@example.test`
+
+    const response = await client
+      .post(applyUrl(org.slug, job.slug))
+      .field('candidate', JSON.stringify(candidate(email).candidate))
+      .file('cv', Buffer.from('<!doctype html><html><script>alert(1)</script></html>'), {
+        filename: 'cv.pdf',
+        contentType: 'application/pdf',
+      })
+
+    response.assertStatus(422)
+    const body = response.body() as unknown as { errors: Record<string, string> }
+    assert.property(body.errors, 'cv')
+  })
+
+  test('stocke le MIME détecté et ignore un content-type mensonger', async ({ client, assert }) => {
+    const { org, job } = await fixtures()
+    const email = `sniff-${randomUUID()}@example.test`
+
+    const response = await client
+      .post(applyUrl(org.slug, job.slug))
+      .field('candidate', JSON.stringify(candidate(email).candidate))
+      .file('cv', Buffer.from('%PDF-1.4 test'), {
+        filename: 'cv.pdf',
+        contentType: 'text/html',
+      })
+
+    response.assertStatus(202)
+
+    const pending = await PendingApplication.findBy('email', email)
+    const payload = pending!.payload as unknown as { cvDocumentId: string }
+    const document = await CandidateDocument.findOrFail(payload.cvDocumentId)
+    assert.equal(document.mimeType, 'application/pdf')
+
+    await FileStorage.delete(document.filePath)
+    await document.delete()
+  })
+
+  test('refuse un fichier dont le contenu réel ne respecte pas les accept du champ', async ({
+    client,
+    assert,
+  }) => {
+    const { org, job, fileFieldId } = await fixtures({ accept: ['image/png'] })
+    const email = `accept-${randomUUID()}@example.test`
+
+    const response = await client
+      .post(applyUrl(org.slug, job.slug))
+      .field('candidate', JSON.stringify(candidate(email).candidate))
+      .file(`file_${fileFieldId}`, Buffer.from('%PDF-1.4 test'), {
+        filename: 'piece.png',
+        contentType: 'image/png',
+      })
+
+    response.assertStatus(422)
+    const body = response.body() as unknown as { errors: Record<string, string> }
+    assert.deepEqual(Object.keys(body.errors), [fileFieldId])
   })
 })
 
