@@ -43,6 +43,21 @@ const authConfig = defineConfig({
         model: () => import('#models/user'),
       }),
     }),
+
+    /**
+     * Guard dédié au portail candidat (Job Seeker).
+     *
+     * Il est volontairement séparé de `web` et de `candidate_api` : un
+     * candidat ne doit jamais hériter des permissions du staff, et inversement.
+     * Pas de remember-me pour ce guard : un cookie de session classique suffit
+     * et limite la durée d'exposition d'une session candidate.
+     */
+    job_seeker_web: sessionGuard({
+      useRememberMeTokens: false,
+      provider: sessionUserProvider({
+        model: () => import('#models/job_seeker'),
+      }),
+    }),
   },
 })
 

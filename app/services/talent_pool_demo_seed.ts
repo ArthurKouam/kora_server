@@ -237,12 +237,14 @@ export async function seedTalentPoolDemo(options: { reset?: boolean } = {}): Pro
 
   for (const person of PEOPLE) {
     const candidate = await Candidate.create({
+      organizationId: organization.id,
       email: person.email,
       firstName: person.firstName,
       lastName: person.lastName,
       city: person.city,
       country: person.country,
       bio: person.bio,
+      source: person.source === 'application' ? 'career_page' : 'manual',
     })
 
     for (const name of person.skills) {
@@ -330,12 +332,14 @@ export async function seedTalentPoolDemo(options: { reset?: boolean } = {}): Pro
 
   // Un profil retiré : le vivier le sort de la liste sans rien effacer.
   const archivedCandidate = await Candidate.create({
+    organizationId: organization.id,
     email: 'yves.bakary@example.test',
     firstName: 'Yves',
     lastName: 'Bakary',
     city: 'Douala',
     country: 'Cameroun',
     bio: 'Profil conservé après une candidature close.',
+    source: 'career_page',
   })
   const archivedApplication = await Application.create({
     jobId: job.id,
@@ -364,7 +368,10 @@ export async function seedTalentPoolDemo(options: { reset?: boolean } = {}): Pro
   })
 
   // Une candidature créée depuis le vivier, pour montrer la réutilisation.
-  const reused = await Candidate.query().where('email', 'ibrahim.sow@example.test').firstOrFail()
+  const reused = await Candidate.query()
+    .where('organization_id', organization.id)
+    .where('email', 'ibrahim.sow@example.test')
+    .firstOrFail()
   await Application.create({
     jobId: secondJob.id,
     candidateId: reused.id,

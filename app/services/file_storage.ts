@@ -77,7 +77,7 @@ export default class FileStorage {
    */
   static async store(
     file: MultipartFile,
-    folder: 'cvs' | 'application-documents',
+    folder: 'cvs' | 'application-documents' | 'job-seeker-documents',
     options: { allowedMimeTypes?: string[] } = {}
   ): Promise<StoredFileInfo> {
     const mimeType = await this.detectMimeType(file)

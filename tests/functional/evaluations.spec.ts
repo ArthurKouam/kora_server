@@ -21,6 +21,7 @@ async function fixtures(role = 'recruiter') {
     role,
   })
   const candidate = await Candidate.create({
+    organizationId: organization.id,
     email: `candidate-${suffix}@example.test`,
     firstName: 'Jean',
     lastName: 'Candidat',

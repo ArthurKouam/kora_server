@@ -1,6 +1,8 @@
 import { CandidateSchema } from '#database/schema'
-import { hasMany } from '@adonisjs/lucid/orm'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import Organization from '#models/organization'
+import JobSeeker from '#models/job_seeker'
 import CandidateDocument from '#models/candidate_document'
 import CandidateExperience from '#models/candidate_experience'
 import CandidateEducation from '#models/candidate_education'
@@ -17,6 +19,20 @@ export default class Candidate extends CandidateSchema {
   static candidateSessions = DbAccessTokensProvider.forModel(Candidate, {
     table: 'candidate_access_tokens',
   })
+
+  /**
+   * Dossier ATS : il appartient toujours à une organisation. Le même candidat
+   * peut avoir un dossier distinct dans chaque entreprise.
+   */
+  @belongsTo(() => Organization)
+  declare organization: BelongsTo<typeof Organization>
+
+  /**
+   * Compte Job Seeker à l'origine du dossier, s'il existe. NULL pour une
+   * candidature déposée sans compte depuis une page carrière.
+   */
+  @belongsTo(() => JobSeeker)
+  declare jobSeeker: BelongsTo<typeof JobSeeker>
 
   @hasMany(() => CandidateDocument)
   declare documents: HasMany<typeof CandidateDocument>

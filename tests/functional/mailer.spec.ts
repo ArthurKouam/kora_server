@@ -30,7 +30,10 @@ test.group('Mailer', (group) => {
       password: '[REDACTED:password]',
       role: 'recruiter',
     })
-    const candidate = await Candidate.create({ email: `candidate-${randomUUID()}@example.test` })
+    const candidate = await Candidate.create({
+      organizationId: organization.id,
+      email: `candidate-${randomUUID()}@example.test`,
+    })
     const job = await Job.create({
       organizationId: organization.id,
       createdBy: user.id,

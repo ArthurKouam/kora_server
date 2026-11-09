@@ -16,6 +16,14 @@ import {
   informationRequestPostIpThrottle,
   informationRequestPostTokenThrottle,
   forgotPasswordThrottle,
+  jobSeekerApplyThrottle,
+  jobSeekerForgotThrottle,
+  jobSeekerListThrottle,
+  jobSeekerLoginThrottle,
+  jobSeekerResendThrottle,
+  jobSeekerResetThrottle,
+  jobSeekerSignupThrottle,
+  jobSeekerVerifyThrottle,
   loginThrottle,
   otpResendThrottle,
   otpVerifyThrottle,
@@ -162,6 +170,79 @@ router
           .use([teamInvitationPostIpThrottle, teamInvitationPostTokenThrottle])
       })
       .prefix('career')
+
+    /**
+     * ── Portail candidat (Job Seeker) ──────────────────────────────────
+     *
+     * Authentification séparée du staff : guard `job_seeker_web`, compteurs de
+     * rate limiting dédiés. Aucune route de ce groupe ne donne accès aux
+     * données d'une organisation tant que le candidat n'a pas postulé.
+     */
+    router
+      .group(() => {
+        router
+          .post('auth/signup', [controllers.JobSeekerAuth, 'signup'])
+          .use([jobSeekerSignupThrottle])
+        router
+          .post('auth/login', [controllers.JobSeekerAuth, 'login'])
+          .use([jobSeekerLoginThrottle])
+        router
+          .post('auth/verify-email', [controllers.JobSeekerAuth, 'verifyEmail'])
+          .use([jobSeekerVerifyThrottle])
+        router
+          .post('auth/resend-verification', [controllers.JobSeekerAuth, 'resendVerification'])
+          .use([jobSeekerResendThrottle])
+        router
+          .post('auth/forgot-password', [controllers.JobSeekerAuth, 'forgotPassword'])
+          .use([jobSeekerForgotThrottle])
+        router
+          .post('auth/reset-password', [controllers.JobSeekerAuth, 'resetPassword'])
+          .use([jobSeekerResetThrottle])
+      })
+      .prefix('job-seeker')
+
+    router
+      .group(() => {
+        router.post('auth/logout', [controllers.JobSeekerAuth, 'logout'])
+        router.get('me', [controllers.JobSeekerAuth, 'me'])
+
+        router.get('profile', [controllers.JobSeekerProfile, 'show'])
+        router.put('profile', [controllers.JobSeekerProfile, 'update'])
+        router.put('password', [controllers.JobSeekerProfile, 'updatePassword'])
+        router.delete('account', [controllers.JobSeekerProfile, 'destroy'])
+
+        router.post('experiences', [controllers.JobSeekerProfile, 'storeExperience'])
+        router.put('experiences/:id', [controllers.JobSeekerProfile, 'updateExperience'])
+        router.delete('experiences/:id', [controllers.JobSeekerProfile, 'destroyExperience'])
+
+        router.post('educations', [controllers.JobSeekerProfile, 'storeEducation'])
+        router.put('educations/:id', [controllers.JobSeekerProfile, 'updateEducation'])
+        router.delete('educations/:id', [controllers.JobSeekerProfile, 'destroyEducation'])
+
+        router.get('skills/catalog', [controllers.JobSeekerProfile, 'skillsCatalog'])
+        router.put('skills', [controllers.JobSeekerProfile, 'setSkills'])
+
+        router.get('documents', [controllers.JobSeekerDocuments, 'index'])
+        router.post('documents', [controllers.JobSeekerDocuments, 'store'])
+        router.post('documents/:id/default', [controllers.JobSeekerDocuments, 'setDefault'])
+        router.delete('documents/:id', [controllers.JobSeekerDocuments, 'destroy'])
+        router.get('documents/:id/download', [controllers.JobSeekerDocuments, 'download'])
+
+        router
+          .get('jobs', [controllers.JobSeekerJobs, 'index'])
+          .use([jobSeekerListThrottle])
+        router.get('jobs/:jobId', [controllers.JobSeekerJobs, 'show'])
+        router
+          .post('jobs/:jobId/apply', [controllers.JobSeekerJobs, 'apply'])
+          .use([jobSeekerApplyThrottle])
+
+        router.get('applications', [controllers.JobSeekerApplications, 'index'])
+        router.get('applications/:id', [controllers.JobSeekerApplications, 'show'])
+        router.get('applications/:id/cv', [controllers.JobSeekerApplications, 'downloadCv'])
+        router.post('applications/:id/withdraw', [controllers.JobSeekerApplications, 'withdraw'])
+      })
+      .prefix('job-seeker')
+      .use(middleware.auth({ guards: ['job_seeker_web'] }))
 
     router
       .group(() => {

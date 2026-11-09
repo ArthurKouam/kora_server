@@ -88,6 +88,7 @@ async function fixtures(planSlug = 'pro', role = 'recruiter') {
     lastName: 'Recruteur',
   })
   const candidate = await Candidate.create({
+    organizationId: organization.id,
     email: `candidat-${suffix}@example.test`,
     firstName: 'Jean',
     lastName: 'Mbarga',

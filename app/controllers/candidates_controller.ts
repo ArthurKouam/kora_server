@@ -31,14 +31,9 @@ export default class CandidatesController {
     const jobId = payload.jobId ?? null
 
     const query = Candidate.query()
-      .whereHas('applications', (applicationsQuery) =>
-        applicationsQuery.whereHas('job', (jobsQuery) =>
-          jobsQuery.where('organization_id', organizationId)
-        )
-      )
+      .where('organization_id', organizationId)
       .preload('applications', (applicationsQuery) =>
         applicationsQuery
-          .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
           .preload('job', (jobsQuery) => jobsQuery.select('id', 'title'))
           .orderBy('updated_at', 'desc')
       )
@@ -54,9 +49,7 @@ export default class CandidatesController {
 
     if (jobId) {
       query.whereHas('applications', (applicationsQuery) => {
-        applicationsQuery
-          .where('job_id', jobId)
-          .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
+        applicationsQuery.where('job_id', jobId)
       })
     }
 
@@ -96,11 +89,7 @@ export default class CandidatesController {
         .select('id', 'title')
         .orderBy('title', 'asc'),
       Candidate.query()
-        .whereHas('applications', (applicationsQuery) =>
-          applicationsQuery.whereHas('job', (jobsQuery) =>
-            jobsQuery.where('organization_id', organizationId)
-          )
-        )
+        .where('organization_id', organizationId)
         .where((candidatesQuery) => {
           candidatesQuery.whereNotNull('city').orWhereNotNull('country')
         })
@@ -170,51 +159,13 @@ export default class CandidatesController {
 
     const candidate = await Candidate.query()
       .where('id', params.id)
-      .andWhereHas('applications', (applicationsQuery) =>
-        applicationsQuery.whereHas('job', (jobsQuery) =>
-          jobsQuery.where('organization_id', organizationId)
-        )
-      )
-      .preload('documents', (documentsQuery) =>
-        documentsQuery.where((subQuery) =>
-          subQuery
-            .whereNull('applicationId')
-            .orWhereHas('application', (applicationQuery) =>
-              applicationQuery.whereHas('job', (jobsQuery) =>
-                jobsQuery.where('organization_id', organizationId)
-              )
-            )
-        )
-      )
-      .preload('experiences', (experiencesQuery) =>
-        experiencesQuery.where((subQuery) =>
-          subQuery
-            .whereNull('applicationId')
-            .orWhereHas('application', (applicationQuery) =>
-              applicationQuery.whereHas('job', (jobsQuery) =>
-                jobsQuery.where('organization_id', organizationId)
-              )
-            )
-        )
-      )
-      .preload('educations', (educationsQuery) =>
-        educationsQuery.where((subQuery) =>
-          subQuery
-            .whereNull('applicationId')
-            .orWhereHas('application', (applicationQuery) =>
-              applicationQuery.whereHas('job', (jobsQuery) =>
-                jobsQuery.where('organization_id', organizationId)
-              )
-            )
-        )
-      )
+      .where('organization_id', organizationId)
+      .preload('documents')
+      .preload('experiences')
+      .preload('educations')
       .preload('skills', (skillsQuery) => skillsQuery.preload('skill'))
       .preload('applications', (applicationsQuery) =>
-        applicationsQuery
-          .whereHas('job', (jobsQuery) => jobsQuery.where('organization_id', organizationId))
-          .preload('job')
-          .preload('cvDocument')
-          .orderBy('applied_at', 'desc')
+        applicationsQuery.preload('job').preload('cvDocument').orderBy('applied_at', 'desc')
       )
       .firstOrFail()
 
