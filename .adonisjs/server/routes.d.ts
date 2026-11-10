@@ -40,6 +40,38 @@ export type ScannedRoutes = {
     'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.accept_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.accept_legacy_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'job_seeker_auth.signup': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.login': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.verify_email': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.resend_verification': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.forgot_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.reset_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.logout': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.me': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.show': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.destroy': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.store_experience': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update_experience': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.destroy_experience': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.store_education': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update_education': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.destroy_education': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.skills_catalog': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.set_skills': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.store': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.set_default': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_documents.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_documents.download': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_jobs.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'job_seeker_jobs.apply': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'job_seeker_applications.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_applications.download_cv': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_applications.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -121,6 +153,16 @@ export type ScannedRoutes = {
     'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'job_seeker_auth.me': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.show': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.skills_catalog': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.download': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_jobs.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'job_seeker_applications.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_applications.download_cv': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -167,6 +209,16 @@ export type ScannedRoutes = {
     'information_requests.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.public_show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.public_show_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'job_seeker_auth.me': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.show': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.skills_catalog': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.download': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_jobs.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'job_seeker_applications.index': { paramsTuple?: []; params?: {} }
+    'job_seeker_applications.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_applications.download_cv': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dashboard.stats': { paramsTuple?: []; params?: {} }
     'dashboard.upcoming_interviews': { paramsTuple?: []; params?: {} }
     'dashboard.application_status_stats': { paramsTuple?: []; params?: {} }
@@ -216,6 +268,19 @@ export type ScannedRoutes = {
     'team_invitations.accept_legacy': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.accept_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'team_invitations.accept_legacy_alias': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
+    'job_seeker_auth.signup': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.login': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.verify_email': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.resend_verification': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.forgot_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.reset_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_auth.logout': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.store_experience': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.store_education': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.store': { paramsTuple?: []; params?: {} }
+    'job_seeker_documents.set_default': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_jobs.apply': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'job_seeker_applications.withdraw': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'team_invitations.store': { paramsTuple?: []; params?: {} }
     'team_invitations.resend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'team_invitations.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -240,6 +305,11 @@ export type ScannedRoutes = {
     'profile.profile.update': { paramsTuple?: []; params?: {} }
     'profile.profile.update_password': { paramsTuple?: []; params?: {} }
     'profile.profile.update_organization': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update_password': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.update_experience': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.update_education': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.set_skills': { paramsTuple?: []; params?: {} }
     'talent_pool.update_note': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'noteId': ParamValue} }
     'talent_pool.set_tags': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'applications.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -251,6 +321,10 @@ export type ScannedRoutes = {
     'jobs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
+    'job_seeker_profile.destroy': { paramsTuple?: []; params?: {} }
+    'job_seeker_profile.destroy_experience': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_profile.destroy_education': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'job_seeker_documents.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'talent_pool.destroy_note': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'noteId': ParamValue} }
     'talent_pool.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'talent_pool.purge': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
