@@ -31,10 +31,10 @@ function frontendUrl(path: string): string {
 export default class JobSeekerAuthController {
   /**
    * POST /job-seeker/auth/signup
-   * Crée le compte + son profil maître, connecte le candidat et envoie le lien
-   * de vérification. Aucune donnée ATS n'est créée ici.
+   * Crée le compte + son profil maître, envoie le lien de vérification et
+   * ne connecte pas l'utilisateur tant que l'email n'est pas confirmé.
    */
-  async signup({ auth, request, response, serialize }: HttpContext) {
+  async signup({ request, response, serialize }: HttpContext) {
     const payload = await request.validateUsing(jobSeekerSignupValidator)
     const email = payload.email.trim().toLowerCase()
 
@@ -58,7 +58,6 @@ export default class JobSeekerAuthController {
       expiresInHours: EMAIL_VERIFICATION_TTL_HOURS,
     })
 
-    await auth.use(GUARD).login(jobSeeker)
     await jobSeeker.load('profile')
 
     return response.created(
