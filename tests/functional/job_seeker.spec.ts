@@ -129,6 +129,19 @@ test.group('Portail candidat — compte', (group) => {
     assert.equal(valid.body().data.user.email, jobSeeker.email)
   })
 
+  test('login refuse un email non vérifié', async ({ client, assert }) => {
+    const jobSeeker = await jobSeekerFixture({ verified: false })
+
+    const response = await client.post(`${BASE}/auth/login`).json({
+      email: jobSeeker.email,
+      password: 'motdepasse123',
+    })
+
+    response.assertStatus(403)
+    assert.equal(response.body().code, 'email_not_verified')
+    assert.isNull((await JobSeeker.findOrFail(jobSeeker.id)).lastLoginAt)
+  })
+
   test('GET /me exige une session candidat', async ({ client }) => {
     const response = await client.get(`${BASE}/me`)
     response.assertStatus(401)

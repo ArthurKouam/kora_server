@@ -85,6 +85,13 @@ export default class JobSeekerAuthController {
       return response.forbidden({ error: 'Ce compte est désactivé.' })
     }
 
+    if (jobSeeker.emailVerifiedAt === null) {
+      return response.forbidden({
+        error: 'Confirmez votre adresse email avant de vous connecter.',
+        code: 'email_not_verified',
+      })
+    }
+
     jobSeeker.lastLoginAt = DateTime.now()
     await jobSeeker.save()
 
