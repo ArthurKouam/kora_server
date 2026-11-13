@@ -74,6 +74,7 @@ export default class TalentPoolController {
     const [candidate, applications, documents, notes, tagIds] = await Promise.all([
       Candidate.query()
         .where('id', entry.candidateId)
+        .where('organization_id', organization.id)
         .preload('skills', (q) => q.preload('skill'))
         .preload('experiences')
         .preload('educations')
@@ -161,7 +162,10 @@ export default class TalentPoolController {
     }
 
     const email = payload.email.toLowerCase()
-    let candidate = await Candidate.query().whereRaw('lower(email) = ?', [email]).first()
+    let candidate = await Candidate.query()
+      .where('organization_id', organization.id)
+      .whereRaw('lower(email) = ?', [email])
+      .first()
 
     if (candidate) {
       // On ne remplit que les champs vides : un profil connu n'est pas réécrit.
@@ -175,6 +179,7 @@ export default class TalentPoolController {
       await candidate.save()
     } else {
       candidate = await Candidate.create({
+        organizationId: organization.id,
         email,
         firstName: payload.firstName ?? null,
         lastName: payload.lastName ?? null,
@@ -183,6 +188,7 @@ export default class TalentPoolController {
         city: payload.city ?? null,
         country: payload.country ?? null,
         linkedinUrl: payload.linkedinUrl ?? null,
+        source: 'manual',
       })
     }
 

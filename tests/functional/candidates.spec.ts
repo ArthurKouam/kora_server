@@ -20,6 +20,7 @@ async function fixtures() {
     role: 'recruiter',
   })
   const candidate = await Candidate.create({
+    organizationId: organization.id,
     email: `candidate-${suffix}@example.test`,
     firstName: 'Marie',
     lastName: 'Dupont',
@@ -145,6 +146,7 @@ test.group('Candidate index', (group) => {
       headcount: 1,
     })
     const otherCandidate = await Candidate.create({
+      organizationId: organization.id,
       email: `other-${suffix}@example.test`,
       firstName: 'Jean',
       lastName: 'Martin',

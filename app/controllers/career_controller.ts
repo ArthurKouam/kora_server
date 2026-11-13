@@ -262,16 +262,22 @@ export default class CareerController {
     }
     const answers = (payload.answers ?? {}) as Record<string, unknown>
 
-    // Candidat : création ou réutilisation par email (unique en base)
-    let candidate = await Candidate.findBy('email', payload.candidate.email)
+    // Candidat : dossier propre à l'organisation ciblée. Deux entreprises
+    // peuvent avoir leur propre fiche pour la même personne.
+    let candidate = await Candidate.query()
+      .where('organization_id', organization.id)
+      .whereRaw('lower(email) = ?', [payload.candidate.email.toLowerCase()])
+      .first()
     if (!candidate) {
       candidate = await Candidate.create({
-        email: payload.candidate.email,
+        organizationId: organization.id,
+        email: payload.candidate.email.toLowerCase(),
         firstName: payload.candidate.firstName,
         lastName: payload.candidate.lastName,
         phone: payload.candidate.phone ?? null,
         city: payload.candidate.city ?? null,
         portfolioUrl: payload.candidate.portfolioUrl ?? null,
+        source: 'career_page',
       })
     } else {
       // Complète les informations manquantes du profil existant, sans écraser
@@ -565,7 +571,10 @@ export default class CareerController {
     // Transaction : création finale idempotente
     // `created=false` signifie qu'une candidature valide existait déjà (Cas B)
     const outcome = await Application.transaction(async (trx) => {
-      const candidate = await Candidate.findBy('email', pending!.email, { client: trx })
+      const candidate = await Candidate.query({ client: trx })
+        .where('organization_id', job.organizationId)
+        .whereRaw('lower(email) = ?', [pending!.email.toLowerCase()])
+        .first()
 
       if (!candidate) {
         return { error: 'candidate_missing' as const }
@@ -626,7 +635,10 @@ export default class CareerController {
       return response.conflict({ error: 'Vous avez déjà postulé à cette offre.' })
     }
 
-    const candidate = await Candidate.findBy('email', pending.email)
+    const candidate = await Candidate.query()
+      .where('organization_id', job.organizationId)
+      .whereRaw('lower(email) = ?', [pending.email.toLowerCase()])
+      .first()
 
     await Mailer.sendApplicationConfirmation(
       pending.email,

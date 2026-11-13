@@ -291,6 +291,7 @@ test.group('Nettoyage des candidatures non vérifiées', () => {
   test('le job supprime les fichiers et documents des pending expirées', async ({ assert }) => {
     const { job } = await fixtures()
     const candidateRecord = await Candidate.create({
+      organizationId: job.organizationId,
       email: `cand-${randomUUID()}@example.test`,
       firstName: 'Jean',
       lastName: 'Candidat',
@@ -343,6 +344,7 @@ test.group('Nettoyage des candidatures non vérifiées', () => {
     })
 
     const candidateRecord = await Candidate.create({
+      organizationId: org.id,
       email: `cand-${suffix}@example.test`,
       firstName: 'Jean',
       lastName: 'Candidat',
@@ -400,7 +402,12 @@ test.group('Nettoyage des candidatures non vérifiées', () => {
   })
 
   test('le balayage purge un document orphelin de plus de 24 h', async ({ assert }) => {
+    const organization = await Organization.create({
+      name: `Sweep ${randomUUID()}`,
+      slug: `sweep-${randomUUID()}`,
+    })
     const candidateRecord = await Candidate.create({
+      organizationId: organization.id,
       email: `sweep-${randomUUID()}@example.test`,
       firstName: 'Jean',
       lastName: 'Candidat',
@@ -424,7 +431,12 @@ test.group('Nettoyage des candidatures non vérifiées', () => {
   })
 
   test('le balayage laisse un document récent non rattaché', async ({ assert }) => {
+    const organization = await Organization.create({
+      name: `Fresh ${randomUUID()}`,
+      slug: `fresh-${randomUUID()}`,
+    })
     const candidateRecord = await Candidate.create({
+      organizationId: organization.id,
       email: `fresh-${randomUUID()}@example.test`,
       firstName: 'Jean',
       lastName: 'Candidat',
@@ -451,6 +463,7 @@ test.group('Nettoyage des candidatures non vérifiées', () => {
   test('le balayage préserve un document référencé par une pending valide', async ({ assert }) => {
     const { job } = await fixtures()
     const candidateRecord = await Candidate.create({
+      organizationId: job.organizationId,
       email: `kept-${randomUUID()}@example.test`,
       firstName: 'Jean',
       lastName: 'Candidat',

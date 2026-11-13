@@ -308,7 +308,7 @@ export class CandidateVerificationTokenSchema extends BaseModel {
 }
 
 export class CandidateSchema extends BaseModel {
-  static $columns = ['avatarUrl', 'bio', 'city', 'country', 'createdAt', 'dateOfBirth', 'email', 'firstName', 'githubUrl', 'id', 'lastName', 'linkedinUrl', 'location', 'phone', 'portfolioUrl', 'updatedAt', 'websiteUrl'] as const
+  static $columns = ['avatarUrl', 'bio', 'city', 'country', 'createdAt', 'dateOfBirth', 'email', 'firstName', 'githubUrl', 'id', 'jobSeekerId', 'lastName', 'linkedinUrl', 'location', 'organizationId', 'phone', 'portfolioUrl', 'profileSnapshot', 'source', 'updatedAt', 'websiteUrl'] as const
   $columns = CandidateSchema.$columns
   @column()
   declare avatarUrl: string | null
@@ -331,15 +331,23 @@ export class CandidateSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: string
   @column()
+  declare jobSeekerId: string | null
+  @column()
   declare lastName: string | null
   @column()
   declare linkedinUrl: string | null
   @column()
   declare location: string | null
   @column()
+  declare organizationId: string
+  @column()
   declare phone: string | null
   @column()
   declare portfolioUrl: string | null
+  @column()
+  declare profileSnapshot: any | null
+  @column()
+  declare source: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()
@@ -527,6 +535,206 @@ export class JobFormVersionSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare version: number
+}
+
+export class JobSeekerDocumentSchema extends BaseModel {
+  static $columns = ['createdAt', 'filePath', 'fileSize', 'id', 'isDefault', 'jobSeekerId', 'mimeType', 'name', 'type', 'updatedAt'] as const
+  $columns = JobSeekerDocumentSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare filePath: string
+  @column()
+  declare fileSize: number | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare isDefault: boolean
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare mimeType: string | null
+  @column()
+  declare name: string
+  @column()
+  declare type: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class JobSeekerEducationSchema extends BaseModel {
+  static $columns = ['createdAt', 'degree', 'description', 'endDate', 'fieldOfStudy', 'id', 'institution', 'jobSeekerId', 'location', 'startDate', 'updatedAt'] as const
+  $columns = JobSeekerEducationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare degree: string | null
+  @column()
+  declare description: string | null
+  @column.date()
+  declare endDate: DateTime | null
+  @column()
+  declare fieldOfStudy: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare institution: string | null
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare location: string | null
+  @column.date()
+  declare startDate: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class JobSeekerExperienceSchema extends BaseModel {
+  static $columns = ['company', 'createdAt', 'description', 'endDate', 'id', 'isCurrent', 'jobSeekerId', 'location', 'position', 'startDate', 'updatedAt'] as const
+  $columns = JobSeekerExperienceSchema.$columns
+  @column()
+  declare company: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column.date()
+  declare endDate: DateTime | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare isCurrent: boolean
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare location: string | null
+  @column()
+  declare position: string | null
+  @column.date()
+  declare startDate: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class JobSeekerPasswordResetTokenSchema extends BaseModel {
+  static $columns = ['createdAt', 'expiresAt', 'id', 'jobSeekerId', 'requestIp', 'tokenHash', 'updatedAt', 'usedAt'] as const
+  $columns = JobSeekerPasswordResetTokenSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare requestIp: string | null
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column.dateTime()
+  declare usedAt: DateTime | null
+}
+
+export class JobSeekerProfileSchema extends BaseModel {
+  static $columns = ['avatarUrl', 'bio', 'city', 'country', 'createdAt', 'dateOfBirth', 'firstName', 'githubUrl', 'headline', 'id', 'jobSeekerId', 'lastName', 'linkedinUrl', 'location', 'phone', 'portfolioUrl', 'updatedAt', 'websiteUrl'] as const
+  $columns = JobSeekerProfileSchema.$columns
+  @column()
+  declare avatarUrl: string | null
+  @column()
+  declare bio: string | null
+  @column()
+  declare city: string | null
+  @column()
+  declare country: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.date()
+  declare dateOfBirth: DateTime | null
+  @column()
+  declare firstName: string | null
+  @column()
+  declare githubUrl: string | null
+  @column()
+  declare headline: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare lastName: string | null
+  @column()
+  declare linkedinUrl: string | null
+  @column()
+  declare location: string | null
+  @column()
+  declare phone: string | null
+  @column()
+  declare portfolioUrl: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare websiteUrl: string | null
+}
+
+export class JobSeekerSkillSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'jobSeekerId', 'level', 'skillId', 'updatedAt', 'yearsOfExperience'] as const
+  $columns = JobSeekerSkillSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare level: string | null
+  @column()
+  declare skillId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare yearsOfExperience: number | null
+}
+
+export class JobSeekerVerificationTokenSchema extends BaseModel {
+  static $columns = ['consumedAt', 'createdAt', 'expiresAt', 'id', 'jobSeekerId', 'tokenHash', 'updatedAt'] as const
+  $columns = JobSeekerVerificationTokenSchema.$columns
+  @column.dateTime()
+  declare consumedAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare jobSeekerId: string
+  @column()
+  declare tokenHash: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class JobSeekerSchema extends BaseModel {
+  static $columns = ['createdAt', 'email', 'emailVerifiedAt', 'id', 'lastLoginAt', 'password', 'status', 'updatedAt'] as const
+  $columns = JobSeekerSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column.dateTime()
+  declare emailVerifiedAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column.dateTime()
+  declare lastLoginAt: DateTime | null
+  @column({ serializeAs: null })
+  declare password: string
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class JobSkillSchema extends BaseModel {

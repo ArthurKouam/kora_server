@@ -76,6 +76,48 @@ export interface ApiDefinition {
     resend: typeof routes['team_invitations.resend']
     cancel: typeof routes['team_invitations.cancel']
   }
+  jobSeekerAuth: {
+    signup: typeof routes['job_seeker_auth.signup']
+    login: typeof routes['job_seeker_auth.login']
+    verifyEmail: typeof routes['job_seeker_auth.verify_email']
+    resendVerification: typeof routes['job_seeker_auth.resend_verification']
+    forgotPassword: typeof routes['job_seeker_auth.forgot_password']
+    resetPassword: typeof routes['job_seeker_auth.reset_password']
+    logout: typeof routes['job_seeker_auth.logout']
+    me: typeof routes['job_seeker_auth.me']
+  }
+  jobSeekerProfile: {
+    show: typeof routes['job_seeker_profile.show']
+    update: typeof routes['job_seeker_profile.update']
+    updatePassword: typeof routes['job_seeker_profile.update_password']
+    destroy: typeof routes['job_seeker_profile.destroy']
+    storeExperience: typeof routes['job_seeker_profile.store_experience']
+    updateExperience: typeof routes['job_seeker_profile.update_experience']
+    destroyExperience: typeof routes['job_seeker_profile.destroy_experience']
+    storeEducation: typeof routes['job_seeker_profile.store_education']
+    updateEducation: typeof routes['job_seeker_profile.update_education']
+    destroyEducation: typeof routes['job_seeker_profile.destroy_education']
+    skillsCatalog: typeof routes['job_seeker_profile.skills_catalog']
+    setSkills: typeof routes['job_seeker_profile.set_skills']
+  }
+  jobSeekerDocuments: {
+    index: typeof routes['job_seeker_documents.index']
+    store: typeof routes['job_seeker_documents.store']
+    setDefault: typeof routes['job_seeker_documents.set_default']
+    destroy: typeof routes['job_seeker_documents.destroy']
+    download: typeof routes['job_seeker_documents.download']
+  }
+  jobSeekerJobs: {
+    index: typeof routes['job_seeker_jobs.index']
+    show: typeof routes['job_seeker_jobs.show']
+    apply: typeof routes['job_seeker_jobs.apply']
+  }
+  jobSeekerApplications: {
+    index: typeof routes['job_seeker_applications.index']
+    show: typeof routes['job_seeker_applications.show']
+    downloadCv: typeof routes['job_seeker_applications.download_cv']
+    withdraw: typeof routes['job_seeker_applications.withdraw']
+  }
   dashboard: {
     stats: typeof routes['dashboard.stats']
     upcomingInterviews: typeof routes['dashboard.upcoming_interviews']

@@ -439,6 +439,390 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_invitations_controller').default['publicAccept']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'job_seeker_auth.signup': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/signup'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerSignupValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerSignupValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['signup']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['signup']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.login': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/login'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerLoginValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerLoginValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['login']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['login']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.verify_email': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/verify-email'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerVerifyEmailValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerVerifyEmailValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['verifyEmail']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['verifyEmail']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.resend_verification': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/resend-verification'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerResendVerificationValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerResendVerificationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['resendVerification']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['resendVerification']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.forgot_password': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/forgot-password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerForgotPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerForgotPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['forgotPassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['forgotPassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.reset_password': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/reset-password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerResetPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerResetPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['resetPassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['resetPassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_auth.logout': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/auth/logout'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['logout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['logout']>>>
+    }
+  }
+  'job_seeker_auth.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_auth_controller').default['me']>>>
+    }
+  }
+  'job_seeker_profile.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['show']>>>
+    }
+  }
+  'job_seeker_profile.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/job-seeker/profile'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerUpdateProfileValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerUpdateProfileValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.update_password': {
+    methods: ["PUT"]
+    pattern: '/api/v1/job-seeker/password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerUpdatePasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerUpdatePasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updatePassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updatePassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/job-seeker/account'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroy']>>>
+    }
+  }
+  'job_seeker_profile.store_experience': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/experiences'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerExperienceValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerExperienceValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['storeExperience']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['storeExperience']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.update_experience': {
+    methods: ["PUT"]
+    pattern: '/api/v1/job-seeker/experiences/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerExperienceValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerExperienceValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updateExperience']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updateExperience']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.destroy_experience': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/job-seeker/experiences/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroyExperience']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroyExperience']>>>
+    }
+  }
+  'job_seeker_profile.store_education': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/educations'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerEducationValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerEducationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['storeEducation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['storeEducation']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.update_education': {
+    methods: ["PUT"]
+    pattern: '/api/v1/job-seeker/educations/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerEducationValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerEducationValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updateEducation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['updateEducation']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_profile.destroy_education': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/job-seeker/educations/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroyEducation']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['destroyEducation']>>>
+    }
+  }
+  'job_seeker_profile.skills_catalog': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/skills/catalog'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['skillsCatalog']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['skillsCatalog']>>>
+    }
+  }
+  'job_seeker_profile.set_skills': {
+    methods: ["PUT"]
+    pattern: '/api/v1/job-seeker/skills'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerSkillsValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerSkillsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['setSkills']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_profile_controller').default['setSkills']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_documents.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/documents'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['index']>>>
+    }
+  }
+  'job_seeker_documents.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/documents'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['store']>>>
+    }
+  }
+  'job_seeker_documents.set_default': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/documents/:id/default'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['setDefault']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['setDefault']>>>
+    }
+  }
+  'job_seeker_documents.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/job-seeker/documents/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['destroy']>>>
+    }
+  }
+  'job_seeker_documents.download': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/documents/:id/download'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['download']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_documents_controller').default['download']>>>
+    }
+  }
+  'job_seeker_jobs.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/jobs'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/job_seeker').jobSeekerJobIndexValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_jobs.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/jobs/:jobId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { jobId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['show']>>>
+    }
+  }
+  'job_seeker_jobs.apply': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/jobs/:jobId/apply'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/job_seeker').jobSeekerApplyValidator)>>
+      paramsTuple: [ParamValue]
+      params: { jobId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/job_seeker').jobSeekerApplyValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['apply']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_jobs_controller').default['apply']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'job_seeker_applications.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/applications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['index']>>>
+    }
+  }
+  'job_seeker_applications.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/applications/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['show']>>>
+    }
+  }
+  'job_seeker_applications.download_cv': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/job-seeker/applications/:id/cv'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['downloadCv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['downloadCv']>>>
+    }
+  }
+  'job_seeker_applications.withdraw': {
+    methods: ["POST"]
+    pattern: '/api/v1/job-seeker/applications/:id/withdraw'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['withdraw']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/job_seeker_applications_controller').default['withdraw']>>>
+    }
+  }
   'dashboard.stats': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/stats'

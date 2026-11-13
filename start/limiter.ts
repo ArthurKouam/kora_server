@@ -115,3 +115,44 @@ export const teamInvitationPostTokenThrottle = limiter.define(
       .usingKey(hashTeamInvitationToken(String(ctx.params.token)))
   }
 )
+
+/**
+ * ── Portail candidat (Job Seeker) ──────────────────────────────────────
+ * Les endpoints d'authentification candidate ont leurs propres compteurs :
+ * ils ne partagent ni le quota ni le blocage du staff.
+ */
+export const jobSeekerSignupThrottle = limiter.define('job-seeker-signup', () => {
+  return limiter.allowRequests(5).every('10 minutes')
+})
+
+export const jobSeekerLoginThrottle = limiter.define('job-seeker-login', () => {
+  const limit = limiter.allowRequests(5).every('1 minute')
+  limit.blockFor('2 minutes')
+  return limit
+})
+
+export const jobSeekerVerifyThrottle = limiter.define('job-seeker-verify', () => {
+  return limiter.allowRequests(10).every('1 minute')
+})
+
+export const jobSeekerResendThrottle = limiter.define('job-seeker-resend', () => {
+  return limiter.allowRequests(5).every('10 minutes')
+})
+
+export const jobSeekerForgotThrottle = limiter.define('job-seeker-forgot', () => {
+  const limit = limiter.allowRequests(5).every('10 minutes')
+  limit.blockFor('30 minutes')
+  return limit
+})
+
+export const jobSeekerResetThrottle = limiter.define('job-seeker-reset', () => {
+  return limiter.allowRequests(10).every('10 minutes')
+})
+
+export const jobSeekerApplyThrottle = limiter.define('job-seeker-apply', () => {
+  return limiter.allowRequests(10).every('10 minutes')
+})
+
+export const jobSeekerListThrottle = limiter.define('job-seeker-list', () => {
+  return limiter.allowRequests(60).every('1 minute')
+})
