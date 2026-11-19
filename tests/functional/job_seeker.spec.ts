@@ -138,7 +138,7 @@ test.group('Portail candidat — compte', (group) => {
     })
 
     response.assertStatus(403)
-    assert.equal(response.body().code, 'email_not_verified')
+    assert.equal((response.body() as { code?: string }).code, 'email_not_verified')
     assert.isNull((await JobSeeker.findOrFail(jobSeeker.id)).lastLoginAt)
   })
 

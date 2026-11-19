@@ -336,6 +336,7 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
 
     for (const [index, data] of candidatesData.entries()) {
       const candidate = await Candidate.create({
+        organizationId: organization.id,
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -394,7 +395,10 @@ export default class CreateDemoRecruitingDataSeeder extends BaseSeeder {
     const sarah = await User.findByOrFail('email', 'sarah@acme.test')
     const marc = await User.findByOrFail('email', 'marc@acme.test')
 
-    const marie = await Candidate.findByOrFail('email', 'marie.dupont@exemple.test')
+    const marie = await Candidate.query()
+      .where('organization_id', organization.id)
+      .where('email', 'marie.dupont@exemple.test')
+      .firstOrFail()
     const marieApplication = await Application.query()
       .where('candidate_id', marie.id)
       .where('job_id', devJob.id)
