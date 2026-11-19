@@ -15,6 +15,9 @@ export type ScannedRoutes = {
     'profile.profile.update_password': { paramsTuple?: []; params?: {} }
     'profile.profile.update_organization': { paramsTuple?: []; params?: {} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
+    'api_keys.index': { paramsTuple?: []; params?: {} }
+    'api_keys.store': { paramsTuple?: []; params?: {} }
+    'api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'billing.plans': { paramsTuple?: []; params?: {} }
     'billing_webhook': { paramsTuple?: []; params?: {} }
     'billing.subscription': { paramsTuple?: []; params?: {} }
@@ -136,11 +139,19 @@ export type ScannedRoutes = {
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.me': { paramsTuple?: []; params?: {} }
+    'external_api.jobs': { paramsTuple?: []; params?: {} }
+    'external_api.job': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.candidates': { paramsTuple?: []; params?: {} }
+    'external_api.candidate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.applications': { paramsTuple?: []; params?: {} }
+    'external_api.application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
     'auth.password_reset.show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'api_keys.index': { paramsTuple?: []; params?: {} }
     'billing.plans': { paramsTuple?: []; params?: {} }
     'billing.subscription': { paramsTuple?: []; params?: {} }
     'billing.payments': { paramsTuple?: []; params?: {} }
@@ -192,11 +203,19 @@ export type ScannedRoutes = {
     'job_forms.sources': { paramsTuple?: []; params?: {} }
     'job_forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.me': { paramsTuple?: []; params?: {} }
+    'external_api.jobs': { paramsTuple?: []; params?: {} }
+    'external_api.job': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.candidates': { paramsTuple?: []; params?: {} }
+    'external_api.candidate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.applications': { paramsTuple?: []; params?: {} }
+    'external_api.application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
     'auth.password_reset.show': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'api_keys.index': { paramsTuple?: []; params?: {} }
     'billing.plans': { paramsTuple?: []; params?: {} }
     'billing.subscription': { paramsTuple?: []; params?: {} }
     'billing.payments': { paramsTuple?: []; params?: {} }
@@ -248,6 +267,13 @@ export type ScannedRoutes = {
     'job_forms.sources': { paramsTuple?: []; params?: {} }
     'job_forms.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.me': { paramsTuple?: []; params?: {} }
+    'external_api.jobs': { paramsTuple?: []; params?: {} }
+    'external_api.job': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.candidates': { paramsTuple?: []; params?: {} }
+    'external_api.candidate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'external_api.applications': { paramsTuple?: []; params?: {} }
+    'external_api.application': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
@@ -255,6 +281,7 @@ export type ScannedRoutes = {
     'auth.password_reset.forgot': { paramsTuple?: []; params?: {} }
     'auth.password_reset.update': { paramsTuple: [ParamValue]; params: {'token': ParamValue} }
     'profile.sessions.destroy': { paramsTuple?: []; params?: {} }
+    'api_keys.store': { paramsTuple?: []; params?: {} }
     'billing_webhook': { paramsTuple?: []; params?: {} }
     'billing.checkout': { paramsTuple?: []; params?: {} }
     'billing.confirm': { paramsTuple?: []; params?: {} }
@@ -321,6 +348,7 @@ export type ScannedRoutes = {
     'jobs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
+    'api_keys.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'job_seeker_profile.destroy': { paramsTuple?: []; params?: {} }
     'job_seeker_profile.destroy_experience': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'job_seeker_profile.destroy_education': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

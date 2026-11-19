@@ -1,4 +1,5 @@
 import limiter from '@adonisjs/limiter/services/main'
+import { createHash } from 'node:crypto'
 import { hashInformationRequestToken } from '#services/information_request_tokens'
 import { hashPasswordResetToken } from '#services/password_reset_service'
 import { hashTeamInvitationToken } from '#services/team_invitation_tokens'
@@ -155,4 +156,17 @@ export const jobSeekerApplyThrottle = limiter.define('job-seeker-apply', () => {
 
 export const jobSeekerListThrottle = limiter.define('job-seeker-list', () => {
   return limiter.allowRequests(60).every('1 minute')
+})
+
+/**
+ * ── API externe (clés d'organisation) ──────────────────────────────────
+ * 120 requêtes par minute et par clé. Le token n'est jamais stocké en clair
+ * dans Redis : seule son empreinte SHA-256 sert de clé de compteur, comme pour
+ * les autres secrets à durée de vie longue.
+ */
+export const externalApiThrottle = limiter.define('external-api', (ctx) => {
+  const token = (ctx.request.header('authorization') ?? '').trim()
+  const key = token ? createHash('sha256').update(token).digest('hex') : `ip:${ctx.request.ip()}`
+
+  return limiter.allowRequests(120).every('1 minute').usingKey(key)
 })

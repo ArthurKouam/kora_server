@@ -31,6 +31,11 @@ export interface ApiDefinition {
       destroy: typeof routes['profile.sessions.destroy']
     }
   }
+  apiKeys: {
+    index: typeof routes['api_keys.index']
+    store: typeof routes['api_keys.store']
+    destroy: typeof routes['api_keys.destroy']
+  }
   billing: {
     plans: typeof routes['billing.plans']
     subscription: typeof routes['billing.subscription']
@@ -191,5 +196,14 @@ export interface ApiDefinition {
     publish: typeof routes['job_forms.publish']
     duplicateDraft: typeof routes['job_forms.duplicate_draft']
     destroy: typeof routes['job_forms.destroy']
+  }
+  externalApi: {
+    me: typeof routes['external_api.me']
+    jobs: typeof routes['external_api.jobs']
+    job: typeof routes['external_api.job']
+    candidates: typeof routes['external_api.candidates']
+    candidate: typeof routes['external_api.candidate']
+    applications: typeof routes['external_api.applications']
+    application: typeof routes['external_api.application']
   }
 }

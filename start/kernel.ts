@@ -60,4 +60,9 @@ export const middleware = router.named({
    */
   planFeature: () => import('#middleware/plan_feature_middleware'),
   requireOrganization: () => import('#middleware/require_organization_middleware'),
+  /**
+   * Authentifie l'API externe par clé d'organisation (`Authorization: Bearer`).
+   * N'altère pas les guards : le tenant et la clé sont posés sur le contexte.
+   */
+  apiKey: () => import('#middleware/api_key_middleware'),
 })

@@ -11,6 +11,7 @@ import { middleware } from '#start/kernel'
 import {
   careerApplyThrottle,
   careerListThrottle,
+  externalApiThrottle,
   informationRequestGetIpThrottle,
   informationRequestGetTokenThrottle,
   informationRequestPostIpThrottle,
@@ -73,6 +74,28 @@ router
       .prefix('account')
       .as('profile')
       .use(middleware.auth())
+
+    /**
+     * Clés d'API — capacité Enterprise.
+     *
+     * Le verrou de forfait passe avant le RBAC (comme pour le vivier) : inutile
+     * de laisser deviner une fonctionnalité absente du forfait. La création et
+     * la révocation restent réservées à owner/admin via `settings.org`, car une
+     * clé donne accès à toutes les données de l'organisation.
+     */
+    router
+      .group(() => {
+        router.get('api-keys', [controllers.ApiKeys, 'index'])
+        router.post('api-keys', [controllers.ApiKeys, 'store'])
+        router.delete('api-keys/:id', [controllers.ApiKeys, 'destroy'])
+      })
+      .prefix('settings')
+      .use([
+        middleware.auth(),
+        middleware.requireOrganization(),
+        middleware.planFeature({ feature: 'api', label: 'API et intégrations' }),
+        middleware.permission({ permission: ['settings.org'] }),
+      ])
 
     /**
      * Facturation — plans, abonnement, paiement Mobile Money.
@@ -520,3 +543,26 @@ router
       .use(middleware.auth())
   })
   .prefix('/api/v1')
+
+/**
+ * ── API externe (clés d'organisation) ──────────────────────────────────
+ *
+ * Préfixe distinct de `/api/v1`, qui reste l'API interne du frontend
+ * authentifiée par session. Un client machine présente
+ * `Authorization: Bearer <clé>` ; le middleware résout la clé, charge le
+ * tenant et vérifie que le forfait inclut la capacité `api`.
+ *
+ * Lecture seule en v1 : offres, candidats et candidatures de l'organisation.
+ */
+router
+  .group(() => {
+    router.get('me', [controllers.ExternalApi, 'me'])
+    router.get('jobs', [controllers.ExternalApi, 'jobs'])
+    router.get('jobs/:id', [controllers.ExternalApi, 'job'])
+    router.get('candidates', [controllers.ExternalApi, 'candidates'])
+    router.get('candidates/:id', [controllers.ExternalApi, 'candidate'])
+    router.get('applications', [controllers.ExternalApi, 'applications'])
+    router.get('applications/:id', [controllers.ExternalApi, 'application'])
+  })
+  .prefix('/api/external/v1')
+  .use([externalApiThrottle, middleware.apiKey()])
