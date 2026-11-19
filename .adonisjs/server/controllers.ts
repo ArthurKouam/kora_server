@@ -4,6 +4,7 @@
  */
 
 export const controllers = {
+  ApiKeys: () => import('#controllers/api_keys_controller'),
   ApplicationNotes: () => import('#controllers/application_notes_controller'),
   Applications: () => import('#controllers/applications_controller'),
   Billing: () => import('#controllers/billing_controller'),
@@ -12,6 +13,7 @@ export const controllers = {
   Career: () => import('#controllers/career_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
   Evaluations: () => import('#controllers/evaluations_controller'),
+  ExternalApi: () => import('#controllers/external_api_controller'),
   InformationRequests: () => import('#controllers/information_requests_controller'),
   Interviews: () => import('#controllers/interviews_controller'),
   JobEvaluationCriteria: () => import('#controllers/job_evaluation_criteria_controller'),

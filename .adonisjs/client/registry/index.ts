@@ -72,6 +72,24 @@ const routes = {
     tokens: [{"old":"/api/v1/account/logout","type":0,"val":"api","end":""},{"old":"/api/v1/account/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/account/logout","type":0,"val":"account","end":""},{"old":"/api/v1/account/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['profile.sessions.destroy']['types'],
   },
+  'api_keys.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/settings/api-keys',
+    tokens: [{"old":"/api/v1/settings/api-keys","type":0,"val":"api","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"v1","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"settings","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"api-keys","end":""}],
+    types: placeholder as Registry['api_keys.index']['types'],
+  },
+  'api_keys.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/settings/api-keys',
+    tokens: [{"old":"/api/v1/settings/api-keys","type":0,"val":"api","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"v1","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"settings","end":""},{"old":"/api/v1/settings/api-keys","type":0,"val":"api-keys","end":""}],
+    types: placeholder as Registry['api_keys.store']['types'],
+  },
+  'api_keys.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/settings/api-keys/:id',
+    tokens: [{"old":"/api/v1/settings/api-keys/:id","type":0,"val":"api","end":""},{"old":"/api/v1/settings/api-keys/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/settings/api-keys/:id","type":0,"val":"settings","end":""},{"old":"/api/v1/settings/api-keys/:id","type":0,"val":"api-keys","end":""},{"old":"/api/v1/settings/api-keys/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['api_keys.destroy']['types'],
+  },
   'billing.plans': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/billing/plans',
@@ -797,6 +815,48 @@ const routes = {
     pattern: '/api/v1/dashboard/jobs/:id',
     tokens: [{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":0,"val":"jobs","end":""},{"old":"/api/v1/dashboard/jobs/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['jobs.destroy']['types'],
+  },
+  'external_api.me': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/me',
+    tokens: [{"old":"/api/external/v1/me","type":0,"val":"api","end":""},{"old":"/api/external/v1/me","type":0,"val":"external","end":""},{"old":"/api/external/v1/me","type":0,"val":"v1","end":""},{"old":"/api/external/v1/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['external_api.me']['types'],
+  },
+  'external_api.jobs': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/jobs',
+    tokens: [{"old":"/api/external/v1/jobs","type":0,"val":"api","end":""},{"old":"/api/external/v1/jobs","type":0,"val":"external","end":""},{"old":"/api/external/v1/jobs","type":0,"val":"v1","end":""},{"old":"/api/external/v1/jobs","type":0,"val":"jobs","end":""}],
+    types: placeholder as Registry['external_api.jobs']['types'],
+  },
+  'external_api.job': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/jobs/:id',
+    tokens: [{"old":"/api/external/v1/jobs/:id","type":0,"val":"api","end":""},{"old":"/api/external/v1/jobs/:id","type":0,"val":"external","end":""},{"old":"/api/external/v1/jobs/:id","type":0,"val":"v1","end":""},{"old":"/api/external/v1/jobs/:id","type":0,"val":"jobs","end":""},{"old":"/api/external/v1/jobs/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['external_api.job']['types'],
+  },
+  'external_api.candidates': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/candidates',
+    tokens: [{"old":"/api/external/v1/candidates","type":0,"val":"api","end":""},{"old":"/api/external/v1/candidates","type":0,"val":"external","end":""},{"old":"/api/external/v1/candidates","type":0,"val":"v1","end":""},{"old":"/api/external/v1/candidates","type":0,"val":"candidates","end":""}],
+    types: placeholder as Registry['external_api.candidates']['types'],
+  },
+  'external_api.candidate': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/candidates/:id',
+    tokens: [{"old":"/api/external/v1/candidates/:id","type":0,"val":"api","end":""},{"old":"/api/external/v1/candidates/:id","type":0,"val":"external","end":""},{"old":"/api/external/v1/candidates/:id","type":0,"val":"v1","end":""},{"old":"/api/external/v1/candidates/:id","type":0,"val":"candidates","end":""},{"old":"/api/external/v1/candidates/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['external_api.candidate']['types'],
+  },
+  'external_api.applications': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/applications',
+    tokens: [{"old":"/api/external/v1/applications","type":0,"val":"api","end":""},{"old":"/api/external/v1/applications","type":0,"val":"external","end":""},{"old":"/api/external/v1/applications","type":0,"val":"v1","end":""},{"old":"/api/external/v1/applications","type":0,"val":"applications","end":""}],
+    types: placeholder as Registry['external_api.applications']['types'],
+  },
+  'external_api.application': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/external/v1/applications/:id',
+    tokens: [{"old":"/api/external/v1/applications/:id","type":0,"val":"api","end":""},{"old":"/api/external/v1/applications/:id","type":0,"val":"external","end":""},{"old":"/api/external/v1/applications/:id","type":0,"val":"v1","end":""},{"old":"/api/external/v1/applications/:id","type":0,"val":"applications","end":""},{"old":"/api/external/v1/applications/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['external_api.application']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

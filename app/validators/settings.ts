@@ -14,6 +14,10 @@ export const updatePasswordValidator = vine.create({
   passwordConfirmation: vine.string().minLength(8).maxLength(32).sameAs('password'),
 })
 
+export const createApiKeyValidator = vine.create({
+  name: vine.string().trim().minLength(2).maxLength(80),
+})
+
 export const updateOrganizationValidator = vine.create({
   name: vine.string().trim().minLength(2).maxLength(200),
   about: vine.string().trim().maxLength(3000).nullable().optional(),

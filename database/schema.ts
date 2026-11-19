@@ -7,6 +7,31 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class ApiKeySchema extends BaseModel {
+  static $columns = ['createdAt', 'createdByUserId', 'hash', 'id', 'lastUsedAt', 'name', 'organizationId', 'prefix', 'revokedAt', 'updatedAt'] as const
+  $columns = ApiKeySchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdByUserId: string | null
+  @column()
+  declare hash: string
+  @column({ isPrimary: true })
+  declare id: string
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
+  @column()
+  declare name: string
+  @column()
+  declare organizationId: string
+  @column()
+  declare prefix: string
+  @column.dateTime()
+  declare revokedAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class ApplicationInformationRequestSchema extends BaseModel {
   static $columns = ['answers', 'applicationId', 'cancelledAt', 'createdAt', 'definition', 'deliveryError', 'deliveryStatus', 'expiresAt', 'id', 'message', 'organizationId', 'requestedBy', 'responseDeliveryError', 'responseDeliveryStatus', 'sentAt', 'status', 'submittedAt', 'tokenHash', 'updatedAt'] as const
   $columns = ApplicationInformationRequestSchema.$columns

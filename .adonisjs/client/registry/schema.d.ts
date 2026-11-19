@@ -139,6 +139,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sessions_controller').default['destroy']>>>
     }
   }
+  'api_keys.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/settings/api-keys'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['index']>>>
+    }
+  }
+  'api_keys.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/settings/api-keys'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/settings').createApiKeyValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/settings').createApiKeyValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'api_keys.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/settings/api-keys/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['destroy']>>>
+    }
+  }
   'billing.plans': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/billing/plans'
@@ -1589,6 +1625,90 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['destroy']>>>
+    }
+  }
+  'external_api.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['me']>>>
+    }
+  }
+  'external_api.jobs': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/jobs'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['jobs']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['jobs']>>>
+    }
+  }
+  'external_api.job': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/jobs/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['job']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['job']>>>
+    }
+  }
+  'external_api.candidates': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/candidates'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['candidates']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['candidates']>>>
+    }
+  }
+  'external_api.candidate': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/candidates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['candidate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['candidate']>>>
+    }
+  }
+  'external_api.applications': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/applications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['applications']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['applications']>>>
+    }
+  }
+  'external_api.application': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/external/v1/applications/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['application']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/external_api_controller').default['application']>>>
     }
   }
 }

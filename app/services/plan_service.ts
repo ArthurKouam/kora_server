@@ -180,6 +180,7 @@ export default class PlanService {
        */
       capabilities: {
         talentPool: this.planHasFeature(plan, 'talentPool'),
+        api: this.planHasFeature(plan, 'api'),
       },
     }
   }
